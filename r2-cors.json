@@ -1,9 +1,13 @@
-[
-	{
-		"AllowedOrigins": ["https://tossit.sh", "http://localhost:5173"],
-		"AllowedMethods": ["PUT", "GET", "HEAD"],
-		"AllowedHeaders": ["content-type", "content-length"],
-		"ExposeHeaders": ["ETag"],
-		"MaxAgeSeconds": 3600
-	}
-]
+{
+	"rules": [
+		{
+			"allowed": {
+				"origins": ["https://tossit.sh", "http://localhost:5173"],
+				"methods": ["PUT", "GET", "HEAD"],
+				"headers": ["content-type", "content-length"]
+			},
+			"exposeHeaders": ["ETag"],
+			"maxAgeSeconds": 3600
+		}
+	]
+}

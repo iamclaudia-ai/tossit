@@ -21,8 +21,7 @@
 		{
 			"binding": "DB",
 			"database_name": "tossit",
-			// Replaced by the real id from `wrangler d1 create tossit`.
-			"database_id": "REPLACE_ME_AFTER_D1_CREATE",
+			"database_id": "c4562c60-0716-48bb-b92a-d32f77c5b6f1",
 			"migrations_dir": "drizzle/migrations"
 		}
 	],

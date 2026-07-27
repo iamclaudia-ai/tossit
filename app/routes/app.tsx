@@ -86,6 +86,12 @@ export default function App({ loaderData }: Route.ComponentProps) {
 				</span>
 				<div className="flex items-center gap-3 text-sm">
 					<span className="hidden text-ink-500 sm:inline">{loaderData.email}</span>
+					<Link
+						to="/app/settings"
+						className="rounded-lg px-3 py-1.5 text-ink-400 transition hover:bg-ink-900 hover:text-ink-200"
+					>
+						Settings
+					</Link>
 					{loaderData.isOwner && (
 						<Link
 							to="/app/invites"

@@ -54,12 +54,25 @@
 	"workers_dev": false,
 	"routes": [{ "pattern": "tossit.sh", "custom_domain": true }],
 
+	/** Daily cleanup: expired files, abandoned multipart uploads, dead invites/OTPs/sessions. */
+	"triggers": { "crons": ["17 4 * * *"] },
+
 	/**
-	 * TODO (Phase 7): re-enable the daily cleanup cron once there's a scheduled() handler to
-	 * receive it — expired files, stale multipart uploads, dead invites/OTPs/challenges. A cron
-	 * with no handler just errors on a schedule.
-	 * "triggers": { "crons": ["17 4 * * *"] },
+	 * Edge rate limiting for the public lookup paths. These must never write to D1 — a database
+	 * write per download request would be the most expensive operation in the app.
 	 */
+	"ratelimits": [
+		{
+			"name": "DOWNLOAD_RATE",
+			"namespace_id": "1001",
+			"simple": { "limit": 120, "period": 60 }
+		},
+		{
+			"name": "INVITE_RATE",
+			"namespace_id": "1002",
+			"simple": { "limit": 30, "period": 60 }
+		}
+	],
 
 	"vars": {
 		"APP_URL": "https://tossit.sh"

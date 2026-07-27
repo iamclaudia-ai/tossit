@@ -1,3 +1,6 @@
+import { nanoid } from "nanoid";
+import { getDb } from "~/db";
+import { downloadEvents } from "~/db/schema";
 import {
 	contentDisposition,
 	parseRange,
@@ -5,6 +8,7 @@ import {
 	resolveDownloadable,
 	shouldCountDownload,
 } from "~/lib/download.server";
+import { checkRateLimit, hashIp } from "~/lib/ratelimit.server";
 import type { Route } from "./+types/download.raw";
 
 /**
@@ -16,6 +20,9 @@ import type { Route } from "./+types/download.raw";
  */
 export async function loader({ params, request, context }: Route.LoaderArgs) {
 	const env = context.cloudflare.env;
+
+	const limited = await checkRateLimit(env.DOWNLOAD_RATE, request, "d");
+	if (limited) return limited;
 
 	const resolution = await resolveDownloadable(env, params.slug);
 	// Deliberately uniform: the byte endpoint says nothing about *why* a link is unavailable.
@@ -38,6 +45,9 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 	if (shouldCountDownload(request)) {
 		const claimed = await reserveDownload(env, file.id);
 		if (!claimed) return new Response("Not found", { status: 404 });
+
+		// Audit trail, written after the response is on its way so it never delays the stream.
+		context.cloudflare.ctx.waitUntil(recordDownload(env, request, file.id));
 	}
 
 	const object = await env.BUCKET.get(
@@ -77,4 +87,25 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 
 	headers.set("content-length", String(size));
 	return new Response(object.body, { status: 200, headers });
+}
+
+/**
+ * One row per counted download. IPs are hashed, never stored raw — the question this answers
+ * is "how many distinct people grabbed this", not "who".
+ */
+async function recordDownload(env: Env, request: Request, fileId: string): Promise<void> {
+	try {
+		await getDb(env)
+			.insert(downloadEvents)
+			.values({
+				id: nanoid(),
+				fileId,
+				ipHash: await hashIp(env, request),
+				userAgent: request.headers.get("user-agent")?.slice(0, 300) ?? null,
+				createdAt: Date.now(),
+			});
+	} catch (error) {
+		// Analytics must never break a download.
+		console.error("download event failed:", (error as Error).message);
+	}
 }

@@ -5,7 +5,16 @@
  * Bindings (DB, BUCKET) and plain vars (APP_URL) come from worker-configuration.d.ts.
  * Keep in sync with .dev.vars.example and PLAN.md §9.
  */
+/** Workers rate-limiting binding shape (not covered by generated types). */
+interface RateLimitBinding {
+	limit(options: { key: string }): Promise<{ success: boolean }>;
+}
+
 interface Env {
+	/** Absent in local dev; the helper treats that as "allow". */
+	DOWNLOAD_RATE?: RateLimitBinding;
+	INVITE_RATE?: RateLimitBinding;
+
 	SESSION_SECRET: string;
 
 	R2_ACCOUNT_ID: string;

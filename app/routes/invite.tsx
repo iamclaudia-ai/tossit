@@ -5,6 +5,7 @@ import { useUploads } from "~/hooks/use-uploads";
 import { formatBytes } from "~/lib/format";
 import { type InviteRejection, resolveInvite } from "~/lib/invites.server";
 import { registerPasskey } from "~/lib/passkey-client";
+import { checkRateLimit } from "~/lib/ratelimit.server";
 import type { Route } from "./+types/invite";
 
 export function meta() {
@@ -19,8 +20,13 @@ export const headers: Route.HeadersFunction = () => ({
 	"cache-control": "private, no-store",
 });
 
-export async function loader({ params, context }: Route.LoaderArgs) {
-	const resolution = await resolveInvite(context.cloudflare.env, params.code);
+export async function loader({ params, request, context }: Route.LoaderArgs) {
+	const env = context.cloudflare.env;
+
+	const limited = await checkRateLimit(env.INVITE_RATE, request, "i");
+	if (limited) return limited;
+
+	const resolution = await resolveInvite(env, params.code);
 
 	if (!resolution.ok) {
 		return data({ invite: null, reason: resolution.reason }, { status: 410 });

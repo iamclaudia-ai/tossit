@@ -76,7 +76,7 @@ export const webauthnChallenges = sqliteTable("webauthn_challenges", {
 	expiresAt: integer("expires_at").notNull(),
 });
 
-/** Headless auth for the `toss` CLI — see PLAN.md §10 Phase 3.5. */
+/** Headless auth for the `tossit` CLI — see PLAN.md §10 Phase 3.5. */
 export const deviceTokens = sqliteTable(
 	"device_tokens",
 	{
@@ -95,6 +95,29 @@ export const deviceTokens = sqliteTable(
 	},
 	(t) => [index("device_tokens_user_id_idx").on(t.userId)],
 );
+
+/**
+ * In-flight `tossit login` requests — the OAuth device-authorization grant, minus the parts we
+ * don't need. Short-lived: rows are deleted the moment the CLI collects its token.
+ */
+export const deviceAuthorizations = sqliteTable("device_authorizations", {
+	id: text("id").primaryKey(),
+	/** SHA-256 of the secret the CLI holds and polls with. */
+	deviceCodeHash: text("device_code_hash").notNull().unique(),
+	/** Short, unambiguous, human-typed. Shown in the terminal, entered in the browser. */
+	userCode: text("user_code").notNull().unique(),
+	label: text("label"),
+	approvedAt: integer("approved_at"),
+	approvedBy: text("approved_by").references(() => users.id, { onDelete: "cascade" }),
+	/**
+	 * The minted token, held only between approval and collection — usually seconds. It cannot
+	 * be hashed here, because the CLI has to receive the plaintext exactly once. The row is
+	 * deleted on collection and swept by the cron regardless.
+	 */
+	tokenPlain: text("token_plain"),
+	createdAt: integer("created_at").notNull().$defaultFn(now),
+	expiresAt: integer("expires_at").notNull(),
+});
 
 export const invites = sqliteTable("invites", {
 	id: text("id").primaryKey(),

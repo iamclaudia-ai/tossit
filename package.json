@@ -14,7 +14,9 @@
 		"deploy": "wrangler deploy",
 		"dev": "react-router dev",
 		"preview": "bun run build && vite preview",
-		"typecheck": "bun run cf-typegen && tsc -b"
+		"typecheck": "bun run cf-typegen && tsc -b",
+		"cli": "bun run cli/tossit.ts",
+		"cli:build": "cd cli && bun run build"
 	},
 	"dependencies": {
 		"@simplewebauthn/browser": "^13.3.0",

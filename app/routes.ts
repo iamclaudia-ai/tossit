@@ -18,6 +18,8 @@ export default [
 	// Auth
 	route("auth/passkey/options", "routes/auth.passkey.options.ts"),
 	route("auth/otp/request", "routes/auth.otp.request.ts"),
+	route("auth/device/start", "routes/auth.device.start.ts"),
+	route("auth/device/token", "routes/auth.device.token.ts"),
 	route("auth/otp/verify", "routes/auth.otp.verify.ts"),
 	route("auth/passkey/verify", "routes/auth.passkey.verify.ts"),
 	route("auth/passkey/register", "routes/auth.passkey.register.ts"),
@@ -33,6 +35,9 @@ export default [
 	route("app/files/:id/settings", "routes/app.files.$id.settings.ts"),
 	route("app/settings", "routes/app.settings.tsx"),
 	route("app/users", "routes/app.users.tsx"),
+	route("app/link", "routes/app.link.tsx"),
+	route("app/whoami", "routes/app.whoami.ts"),
+	route("app/files.json", "routes/app.files.json.ts"),
 	route("app/invites", "routes/app.invites.tsx"),
 	route("app/invites/:id/revoke", "routes/app.invites.$id.revoke.ts"),
 ] satisfies RouteConfig;

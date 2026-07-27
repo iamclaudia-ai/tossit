@@ -1,5 +1,6 @@
 import { redirect } from "react-router";
 import type { User } from "~/db/schema";
+import { userFromBearer } from "./device.server";
 import { getUser } from "./session";
 
 /**
@@ -29,10 +30,29 @@ function toAuthed(user: User): AuthedUser {
 	return { user, isOwner, isAdmin, uploaderScope: isAdmin ? null : user.id };
 }
 
-/** Redirects to the landing page when signed out. Use in every /app loader and action. */
+/**
+ * Session cookie OR `Authorization: Bearer <device-token>`. Accepting both here is the whole
+ * CLI auth story — every /app endpoint gains headless support without a parallel API surface.
+ *
+ * A browser gets a redirect; a bearer client gets 401 JSON, because following a 302 to an HTML
+ * sign-in page is useless to a terminal.
+ */
 export async function requireUser(env: Env, request: Request): Promise<AuthedUser> {
-	const user = await getUser(env, request);
-	if (!user) throw redirect("/");
+	const bearer = request.headers.get("authorization")?.startsWith("Bearer ");
+
+	const user = bearer ? await userFromBearer(env, request) : await getUser(env, request);
+
+	if (!user) {
+		throw bearer
+			? new Response(
+					JSON.stringify({ error: "Invalid or revoked token. Run: tossit login" }),
+					{
+						status: 401,
+						headers: { "content-type": "application/json" },
+					},
+				)
+			: redirect("/");
+	}
 	return toAuthed(user);
 }
 

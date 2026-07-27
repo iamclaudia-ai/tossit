@@ -1,0 +1,37 @@
+{
+	"name": "@iamclaudia/tossit",
+	"version": "0.1.0",
+	"description": "Command line client for tossit.sh — toss a big file, get a link, send the link.",
+	"license": "MIT",
+	"type": "module",
+	"bin": {
+		"tossit": "./dist/tossit.js"
+	},
+	"files": [
+		"dist",
+		"README.md"
+	],
+	"engines": {
+		"node": ">=18"
+	},
+	"keywords": [
+		"file-sharing",
+		"upload",
+		"cli",
+		"tossit",
+		"r2"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/iamclaudia-ai/tossit.git",
+		"directory": "cli"
+	},
+	"homepage": "https://tossit.sh",
+	"scripts": {
+		"build": "bun build ./tossit.ts --target=node --outfile ./dist/tossit.js && chmod +x ./dist/tossit.js",
+		"prepublishOnly": "bun run build"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
+}

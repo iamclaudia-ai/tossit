@@ -1,6 +1,7 @@
 import { and, eq, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
 import { getDb } from "~/db";
 import { files, invites, otpCodes, sessions, webauthnChallenges } from "~/db/schema";
+import { purgeExpiredDeviceAuths } from "./device.server";
 import { abortMultipartUpload, deleteObject, getR2Config } from "./r2";
 
 /**
@@ -23,6 +24,7 @@ export interface CleanupReport {
 	otpCodes: number;
 	challenges: number;
 	invites: number;
+	deviceAuths: number;
 	errors: string[];
 }
 
@@ -38,6 +40,7 @@ export async function runCleanup(env: Env): Promise<CleanupReport> {
 		otpCodes: 0,
 		challenges: 0,
 		invites: 0,
+		deviceAuths: 0,
 		errors: [],
 	};
 
@@ -124,6 +127,9 @@ export async function runCleanup(env: Env): Promise<CleanupReport> {
 			),
 		);
 	report.invites = deadInvites.meta?.changes ?? 0;
+
+	// Stale login requests, including any token that was approved but never collected.
+	report.deviceAuths = await purgeExpiredDeviceAuths(env);
 
 	return report;
 }

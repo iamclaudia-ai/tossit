@@ -3,7 +3,7 @@ import { getDb } from "~/db";
 import type { Route } from "./+types/health";
 
 /**
- * Phase 0 gate: proves the Worker can talk to D1 and read/write R2 through the binding.
+ * Proves the Worker can talk to D1 and read/write R2 through the binding.
  * Not linked from anywhere; hit it directly at /health.
  */
 export async function loader({ context }: Route.LoaderArgs) {

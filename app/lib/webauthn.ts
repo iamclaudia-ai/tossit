@@ -73,7 +73,7 @@ export async function consumeChallenge(
 	return row.challenge;
 }
 
-/** Housekeeping; also runs from the daily cron in Phase 7. */
+/** Housekeeping; also runs from the daily cron. */
 export async function purgeExpiredChallenges(env: Env): Promise<void> {
 	await getDb(env)
 		.delete(webauthnChallenges)

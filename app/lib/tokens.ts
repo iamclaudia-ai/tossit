@@ -1,5 +1,5 @@
 /**
- * Public token generation — see PLAN.md §4.
+ * Public token generation.
  *
  * Everything reachable from a public URL (download slugs, invite codes) is 16 random bytes
  * base64url-encoded: 22 chars, 128 bits. Never sequential, never timestamped, never derived

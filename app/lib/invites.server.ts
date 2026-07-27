@@ -5,7 +5,7 @@ import { invites } from "~/db/schema";
 import { timingSafeEqual } from "./tokens";
 
 /**
- * Invite resolution — PLAN.md §5/§6.
+ * Invite resolution.
  *
  * Two kinds:
  *   'upload'  — anonymous, no account. Someone sends me a file. Burns after max_uploads.

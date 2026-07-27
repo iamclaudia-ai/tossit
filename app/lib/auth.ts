@@ -12,7 +12,7 @@ import { getUser } from "./session";
  *   admin  — everything the owner can do, except changing the owner's role or removing them.
  *   member — uploads, and sees only their own files.
  *
- * `uploaderScope` exists from day one on purpose (PLAN.md §3): retrofitting it later is how
+ * `uploaderScope` exists from day one on purpose: retrofitting it later is how
  * you leak someone else's uploads.
  */
 export interface AuthedUser {

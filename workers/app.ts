@@ -23,7 +23,7 @@ export default {
 	},
 
 	/**
-	 * Daily housekeeping (PLAN.md §7). Logged rather than silent: this is the only thing that
+	 * Daily housekeeping. Logged rather than silent: this is the only thing that
 	 * reclaims storage from expired files and abandoned multipart uploads, and a cron that
 	 * quietly fails would show up as a bill rather than an error.
 	 */

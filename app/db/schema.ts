@@ -2,7 +2,7 @@ import { relations } from "drizzle-orm";
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 /**
- * Data model for tossit.sh — see PLAN.md §3.
+ * Data model for tossit.sh.
  *
  * Conventions:
  * - ids are nanoids (text pk)
@@ -76,7 +76,7 @@ export const webauthnChallenges = sqliteTable("webauthn_challenges", {
 	expiresAt: integer("expires_at").notNull(),
 });
 
-/** Headless auth for the `tossit` CLI — see PLAN.md §10 Phase 3.5. */
+/** Headless auth for the `tossit` CLI. */
 export const deviceTokens = sqliteTable(
 	"device_tokens",
 	{

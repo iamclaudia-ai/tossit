@@ -3,7 +3,7 @@ import { getDb } from "~/db";
 import type { FileRow } from "~/db/schema";
 
 /**
- * The single gate in front of both /d/:slug and /d/:slug/raw — PLAN.md §7.
+ * The single gate in front of both /d/:slug and /d/:slug/raw.
  *
  * A slug exists from the moment an upload starts, so pending and aborted rows are reachable
  * URLs. Every reason a link should not resolve is checked here, in one place, so the page and

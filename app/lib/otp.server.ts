@@ -12,7 +12,7 @@ import { generateOtp, sha256, timingSafeEqual } from "./tokens";
 const OTP_TTL_MS = 10 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 
-/** PLAN.md §7: 3 per email per 15 min, 10 per IP per hour. */
+/** 3 codes per email per 15 minutes. */
 const EMAIL_WINDOW_MS = 15 * 60 * 1000;
 const EMAIL_LIMIT = 3;
 

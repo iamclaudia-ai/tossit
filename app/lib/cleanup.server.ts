@@ -5,7 +5,7 @@ import { purgeExpiredDeviceAuths } from "./device.server";
 import { abortMultipartUpload, deleteObject, getR2Config, listObjects } from "./r2";
 
 /**
- * Daily housekeeping — PLAN.md §7. Runs from the cron trigger.
+ * Daily housekeeping. Runs from the cron trigger, and on demand from Settings.
  *
  * The expensive item is abandoned uploads: R2 bills for the parts of a multipart upload that
  * was never completed or aborted, and nothing else in the system ever cleans those up.

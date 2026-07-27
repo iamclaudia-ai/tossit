@@ -1,6 +1,6 @@
 /**
- * Phase 1 gate (PLAN.md §10): prove a >200 MB file survives a full multipart round trip
- * through the exact helpers the app uses, before any UI exists.
+ * Proves a >200 MB file survives a full multipart round trip through the exact helpers the
+ * app uses — a direct check of storage credentials, CORS, and the multipart lifecycle.
  *
  *   bun run scripts/r2-roundtrip.ts [sizeInMB]
  *
@@ -163,7 +163,7 @@ async function main() {
 		}
 		console.log(`SHA-256 matches: ${downloadHash}`);
 
-		console.log("\n✅ Round trip passed. Phase 1 gate is green.");
+		console.log("\n✅ Round trip passed.");
 	} catch (error) {
 		console.error("\n❌ Round trip failed:", error);
 		await abortMultipartUpload(config, key, uploadId).catch(() => {});

@@ -1,5 +1,5 @@
 /**
- * Edge rate limiting for the public lookup paths — PLAN.md §7.
+ * Edge rate limiting for the public lookup paths.
  *
  * Slugs and invite codes are 128 bits, so guessing is already hopeless; this exists so that
  * *trying* costs something and can't be used to hammer the Worker. Deliberately not backed by

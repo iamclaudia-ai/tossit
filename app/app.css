@@ -4,7 +4,7 @@
 	--font-sans: "Familjen Grotesk", ui-sans-serif, system-ui, sans-serif;
 	--font-mono: "DM Mono", ui-monospace, SFMono-Regular, monospace;
 
-	/* Dark-first, single accent — purple. See PLAN.md §8. */
+	/* Dark-first, single accent — purple. */
 	--color-ink-950: oklch(0.16 0.012 285);
 	--color-ink-900: oklch(0.19 0.014 285);
 	--color-ink-850: oklch(0.22 0.015 285);

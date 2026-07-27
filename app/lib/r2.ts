@@ -5,7 +5,7 @@ import { AwsClient } from "aws4fetch";
  *
  * ⚠️ Never call `env.BUCKET.createMultipartUpload()`. The uploadId returned by the R2 binding is
  * not valid for S3-API part uploads or completion, and the failure surfaces late and
- * confusingly. The binding is used only on the download path. See PLAN.md §6.
+ * confusingly. The binding is used only on the download path. See CLAUDE.md.
  */
 
 /** S3 rule: every part except the last must be >= 5 MB. */

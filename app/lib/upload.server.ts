@@ -7,10 +7,10 @@ import { files } from "~/db/schema";
  * (/i/:code/*) flows funnel through these, so the rules can't drift apart.
  */
 
-/** PLAN.md §7. Client-claimed size is checked here and the real size is verified on complete. */
+/** Client-claimed size is checked here; the real size is verified against storage on complete. */
 export const MAX_FILE_BYTES = 5 * 1024 * 1024 * 1024;
 
-/** Default link lifetime. Overridable per file in Phase 5, including "never". */
+/** Default link lifetime. Overridable per file, including "never". */
 export const DEFAULT_EXPIRY_MS = 30 * 24 * 60 * 60 * 1000;
 
 export interface IntentInput {

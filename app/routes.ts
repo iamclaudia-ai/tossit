@@ -12,4 +12,8 @@ export default [
 
 	// App (session required)
 	route("app", "routes/app.tsx"),
+	route("app/upload-intent", "routes/app.upload-intent.ts"),
+	route("app/upload-parts", "routes/app.upload-parts.ts"),
+	route("app/upload-complete", "routes/app.upload-complete.ts"),
+	route("app/upload-abort", "routes/app.upload-abort.ts"),
 ] satisfies RouteConfig;

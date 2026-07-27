@@ -33,14 +33,14 @@
 	"r2_buckets": [
 		{
 			"binding": "BUCKET",
-			"bucket_name": "tossit-files"
+			"bucket_name": "tossit-files",
 			/**
-			 * TODO: set "remote": true once a workers.dev subdomain is registered on the
-			 * account. Uploads go browser → R2 directly via presigned URLs, so they always land
-			 * in the *real* bucket, while this binding reads the local simulation in dev — so a
-			 * file uploaded in dev 404s on download until the binding is pointed at the real
-			 * bucket. Production is unaffected; both sides are real there.
+			 * Reads the real bucket even in local dev. Uploads go browser → R2 directly via
+			 * presigned URLs, so they always land in the real bucket; with the local simulation
+			 * every download in dev would 404 on a file that plainly exists. D1 stays local, so
+			 * dev metadata never touches production.
 			 */
+			"remote": true
 		}
 	],
 

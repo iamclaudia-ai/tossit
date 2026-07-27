@@ -2,7 +2,7 @@ import { and, desc, eq, isNull } from "drizzle-orm";
 import { useState } from "react";
 import { data, Link, useFetcher, useRevalidator } from "react-router";
 import { getDb } from "~/db";
-import { credentials, sessions } from "~/db/schema";
+import { credentials, deviceTokens, sessions } from "~/db/schema";
 import { requireUser } from "~/lib/auth";
 import { runCleanup } from "~/lib/cleanup.server";
 import { formatAge } from "~/lib/format";
@@ -18,7 +18,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 	const { user } = await requireUser(env, request);
 	const db = getDb(env);
 
-	const [keys, active] = await Promise.all([
+	const [keys, active, tokens] = await Promise.all([
 		db
 			.select()
 			.from(credentials)
@@ -30,6 +30,12 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 			.from(sessions)
 			.where(and(eq(sessions.userId, user.id), isNull(sessions.revokedAt)))
 			.orderBy(desc(sessions.createdAt))
+			.all(),
+		db
+			.select()
+			.from(deviceTokens)
+			.where(and(eq(deviceTokens.userId, user.id), isNull(deviceTokens.revokedAt)))
+			.orderBy(desc(deviceTokens.createdAt))
 			.all(),
 	]);
 
@@ -51,6 +57,12 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 				createdAt: session.createdAt,
 				expiresAt: session.expiresAt,
 			})),
+		deviceTokens: tokens.map((token) => ({
+			id: token.id,
+			label: token.label,
+			createdAt: token.createdAt,
+			lastUsedAt: token.lastUsedAt,
+		})),
 	};
 }
 
@@ -102,6 +114,15 @@ export async function action({ request, context }: Route.ActionArgs) {
 			return data({ ok: false, error: "Not found.", report: null }, { status: 404 });
 		const report = await runCleanup(env);
 		return { ok: true, error: null, report };
+	}
+
+	if (intent === "revoke-token") {
+		const id = String(form.get("id") ?? "");
+		await db
+			.update(deviceTokens)
+			.set({ revokedAt: Date.now() })
+			.where(and(eq(deviceTokens.id, id), eq(deviceTokens.userId, user.id)));
+		return { ok: true, error: null, report: null };
 	}
 
 	if (intent === "revoke-session") {
@@ -232,6 +253,50 @@ export default function Settings({ loaderData, actionData }: Route.ComponentProp
 							</li>
 						))}
 					</ul>
+				</section>
+
+				<section className="mt-10">
+					<h2 className="font-medium">Command line</h2>
+					<p className="mt-0.5 text-ink-500 text-sm">
+						Terminals linked with <code className="text-ink-400">tossit login</code>.
+						Revoking one signs that machine out immediately.
+					</p>
+
+					{loaderData.deviceTokens.length === 0 ? (
+						<div className="mt-4 rounded-2xl border border-ink-900 border-dashed px-4 py-6 text-center">
+							<p className="text-ink-500 text-sm">No terminals linked yet.</p>
+							<p className="mt-1 font-mono text-ink-700 text-xs">
+								npx @iamclaudia/tossit login
+							</p>
+						</div>
+					) : (
+						<ul className="mt-4 divide-y divide-ink-900 overflow-hidden rounded-2xl border border-ink-900">
+							{loaderData.deviceTokens.map((token) => (
+								<li
+									key={token.id}
+									className="flex items-center gap-3 bg-ink-900/40 px-4 py-3"
+								>
+									<div className="min-w-0 flex-1">
+										<p className="truncate font-medium text-sm">
+											{token.label ?? "Terminal"}
+										</p>
+										<p className="tnum mt-0.5 font-mono text-ink-500 text-xs">
+											linked {formatAge(token.createdAt)}
+											{token.lastUsedAt
+												? ` · last used ${formatAge(token.lastUsedAt)}`
+												: " · never used"}
+										</p>
+									</div>
+									<RowAction
+										intent="revoke-token"
+										id={token.id}
+										label="Revoke"
+										confirm="Revoke this terminal?"
+									/>
+								</li>
+							))}
+						</ul>
+					)}
 				</section>
 
 				<section className="mt-10">

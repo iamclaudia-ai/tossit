@@ -20,4 +20,6 @@ export default [
 	route("app/upload-parts", "routes/app.upload-parts.ts"),
 	route("app/upload-complete", "routes/app.upload-complete.ts"),
 	route("app/upload-abort", "routes/app.upload-abort.ts"),
+	route("app/files/:id/delete", "routes/app.files.$id.delete.ts"),
+	route("app/files/:id/settings", "routes/app.files.$id.settings.ts"),
 ] satisfies RouteConfig;

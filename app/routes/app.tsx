@@ -1,19 +1,14 @@
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { useCallback, useEffect, useState } from "react";
 import { Form, useRevalidator } from "react-router";
-import { CopyButton, copyText } from "~/components/copy-button";
+import { copyText } from "~/components/copy-button";
 import { Dropzone } from "~/components/dropzone";
+import { FileRow } from "~/components/file-row";
 import { getDb } from "~/db";
 import { files } from "~/db/schema";
 import { type UploadItem, useUploads } from "~/hooks/use-uploads";
 import { requireUser } from "~/lib/auth";
-import {
-	formatAge,
-	formatBytes,
-	formatDuration,
-	formatExpiry,
-	formatRate,
-} from "~/lib/format";
+import { formatBytes, formatDuration, formatRate } from "~/lib/format";
 import { getRequestOrigin } from "~/lib/origin";
 import type { UploadResult } from "~/lib/uploader";
 import type { Route } from "./+types/app";
@@ -50,6 +45,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 			url: `${origin}/d/${row.slug}`,
 			completedAt: row.completedAt,
 			expiresAt: row.expiresAt,
+			maxDownloads: row.maxDownloads,
 			downloadCount: row.downloadCount,
 		})),
 	};
@@ -120,20 +116,7 @@ export default function App({ loaderData }: Route.ComponentProps) {
 						</h2>
 						<ul className="mt-3 divide-y divide-ink-900 overflow-hidden rounded-2xl border border-ink-900">
 							{loaderData.files.map((file) => (
-								<li
-									key={file.id}
-									className="flex items-center gap-4 bg-ink-900/40 px-4 py-3 transition hover:bg-ink-900"
-								>
-									<div className="min-w-0 flex-1">
-										<p className="truncate font-medium text-sm">{file.filename}</p>
-										<p className="tnum mt-0.5 font-mono text-ink-500 text-xs">
-											{formatBytes(file.size)} · {formatAge(file.completedAt ?? 0)} ·{" "}
-											{formatExpiry(file.expiresAt)}
-											{file.downloadCount > 0 && ` · ${file.downloadCount} ↓`}
-										</p>
-									</div>
-									<CopyButton value={file.url} />
-								</li>
+								<FileRow key={file.id} file={file} />
 							))}
 						</ul>
 					</section>

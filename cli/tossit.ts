@@ -28,7 +28,11 @@ import { open } from "node:fs/promises";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
 
-const VERSION = "0.1.0";
+// Bundled inline at build time, so `tossit --version` can never drift from the published
+// package the way a hand-maintained constant does.
+import pkg from "./package.json" with { type: "json" };
+
+const VERSION = pkg.version;
 const DEFAULT_HOST = "https://tossit.sh";
 const CONCURRENCY = 4;
 

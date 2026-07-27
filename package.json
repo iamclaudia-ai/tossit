@@ -1,5 +1,6 @@
 {
 	"name": "tossit",
+	"version": "0.1.0",
 	"description": "Private file sharing for files too big to email.",
 	"private": true,
 	"type": "module",

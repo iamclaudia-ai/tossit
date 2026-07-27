@@ -9,7 +9,9 @@
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"name": "tossit",
 	"main": "./workers/app.ts",
-	"compatibility_date": "2026-07-27",
+	// Highest date the installed workerd supports. Bumping past it makes local dev silently
+	// fall back, so dev and prod would run different semantics.
+	"compatibility_date": "2025-11-25",
 	"compatibility_flags": ["nodejs_compat"],
 	"observability": { "enabled": true },
 	"upload_source_maps": true,

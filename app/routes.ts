@@ -4,6 +4,10 @@ export default [
 	index("routes/home.tsx"),
 	route("health", "routes/health.tsx"),
 
+	// Public download
+	route("d/:slug", "routes/download.tsx"),
+	route("d/:slug/raw", "routes/download.raw.ts"),
+
 	// Auth
 	route("auth/passkey/options", "routes/auth.passkey.options.ts"),
 	route("auth/passkey/verify", "routes/auth.passkey.verify.ts"),

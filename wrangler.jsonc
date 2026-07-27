@@ -34,6 +34,13 @@
 		{
 			"binding": "BUCKET",
 			"bucket_name": "tossit-files"
+			/**
+			 * TODO: set "remote": true once a workers.dev subdomain is registered on the
+			 * account. Uploads go browser → R2 directly via presigned URLs, so they always land
+			 * in the *real* bucket, while this binding reads the local simulation in dev — so a
+			 * file uploaded in dev 404s on download until the binding is pointed at the real
+			 * bucket. Production is unaffected; both sides are real there.
+			 */
 		}
 	],
 

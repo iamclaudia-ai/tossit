@@ -44,10 +44,22 @@
 		}
 	],
 
-	/** Daily cleanup: expired files, stale multipart uploads, dead invites/OTPs/sessions. */
-	"triggers": {
-		"crons": ["17 4 * * *"]
-	},
+	/**
+	 * Custom domain. Creates and manages the DNS record for tossit.sh automatically.
+	 *
+	 * workers_dev is off on purpose: a second public origin would mean download links exist at
+	 * two hostnames, and passkeys would break there anyway because the WebAuthn rpID must match
+	 * the domain exactly.
+	 */
+	"workers_dev": false,
+	"routes": [{ "pattern": "tossit.sh", "custom_domain": true }],
+
+	/**
+	 * TODO (Phase 7): re-enable the daily cleanup cron once there's a scheduled() handler to
+	 * receive it — expired files, stale multipart uploads, dead invites/OTPs/challenges. A cron
+	 * with no handler just errors on a schedule.
+	 * "triggers": { "crons": ["17 4 * * *"] },
+	 */
 
 	"vars": {
 		"APP_URL": "https://tossit.sh"

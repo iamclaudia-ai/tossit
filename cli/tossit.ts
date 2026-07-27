@@ -75,8 +75,17 @@ const red = (s: string) => (isTTY ? `\x1b[31m${s}\x1b[0m` : s);
 /** Status goes to stderr so `tossit file | pbcopy` pipes only the link. */
 const status = (line: string) => process.stderr.write(`${line}\n`);
 
-function fail(message: string): never {
+function fail(message: string, cause?: unknown): never {
 	process.stderr.write(`${red("error")} ${message}\n`);
+
+	// undici reports transport problems as a bare "fetch failed"; everything useful — DNS,
+	// TLS, ECONNRESET, the actual host — is on the cause chain.
+	let current: unknown = cause;
+	while (current instanceof Error) {
+		const code = (current as NodeJS.ErrnoException).code;
+		process.stderr.write(`  ${dim("↳")} ${current.message}${code ? ` (${code})` : ""}\n`);
+		current = current.cause;
+	}
 	process.exit(1);
 }
 
@@ -117,7 +126,7 @@ async function api<T>(
 			redirect: "manual",
 		});
 	} catch (error) {
-		fail(`Couldn't reach ${config.host} — ${(error as Error).message}`);
+		fail(`Couldn't reach ${config.host}.`, error);
 	}
 
 	if (response.status === 401) fail("Token invalid or revoked. Run: tossit login");
@@ -230,6 +239,59 @@ interface IntentResponse {
 	single?: { url: string };
 }
 
+const MAX_ATTEMPTS = 3;
+
+/**
+ * PUT one chunk, retrying transient transport failures.
+ *
+ * Uploads are long and networks are not: a single dropped connection twenty minutes into a
+ * multi-gigabyte transfer should not throw the whole thing away. Retries cover network errors
+ * and 5xx/429 from storage — never a 4xx, which means the request itself is wrong and would
+ * fail identically forever.
+ *
+ * A raw fetch reports transport problems as a bare "fetch failed"; the cause chain carries
+ * everything useful, so it is surfaced on the final attempt.
+ */
+async function putChunk(url: string, body: Buffer, what: string): Promise<Response> {
+	let lastError: unknown;
+
+	for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+		try {
+			const response = await fetch(url, {
+				method: "PUT",
+				body: new Uint8Array(body),
+			});
+
+			if (response.ok) return response;
+			if (response.status < 500 && response.status !== 429) return response;
+
+			lastError = new Error(`storage returned ${response.status}`);
+		} catch (error) {
+			lastError = error;
+		}
+
+		if (attempt < MAX_ATTEMPTS) {
+			const backoff = 2 ** (attempt - 1) * 1000;
+			status(dim(`  ${what} failed, retrying in ${backoff / 1000}s…`));
+			await new Promise((resolve) => setTimeout(resolve, backoff));
+		}
+	}
+
+	throw new UploadError(
+		`${what} could not be sent to storage after ${MAX_ATTEMPTS} attempts.`,
+		lastError,
+	);
+}
+
+/** Carries the transport cause so the top level can print the chain. */
+class UploadError extends Error {
+	constructor(message: string, cause: unknown) {
+		super(message);
+		this.name = "UploadError";
+		this.cause = cause;
+	}
+}
+
 /** Reads one byte range rather than the whole file — these are large by definition. */
 async function readChunk(path: string, start: number, length: number): Promise<Buffer> {
 	const handle = await open(path, "r");
@@ -274,49 +336,58 @@ async function upload(path: string, options: Set<string>): Promise<void> {
 
 	let completeBody: Record<string, unknown>;
 
-	if (intent.single) {
-		const body = await readChunk(path, 0, total);
-		const response = await fetch(intent.single.url, { method: "PUT", body });
-		if (!response.ok) {
-			await abort(config, intent.fileId);
-			fail(`Upload failed (${response.status}).`);
+	// Any failure past this point must abort the upload: an orphaned multipart upload keeps
+	// billing until the nightly cron notices it. A thrown fetch used to skip this entirely.
+	try {
+		if (intent.single) {
+			const body = await readChunk(path, 0, total);
+			const response = await putChunk(intent.single.url, body, "The file");
+			if (!response.ok)
+				throw new UploadError(`Upload failed (${response.status}).`, null);
+			uploaded = total;
+			render();
+			completeBody = { fileId: intent.fileId };
+		} else {
+			const partSize = intent.partSize as number;
+			const parts = intent.parts ?? [];
+			const etags: { partNumber: number; etag: string }[] = [];
+			let cursor = 0;
+
+			await Promise.all(
+				Array.from({ length: Math.min(CONCURRENCY, parts.length) }, async () => {
+					while (cursor < parts.length) {
+						const part = parts[cursor++];
+						const start = (part.partNumber - 1) * partSize;
+						const length = Math.min(partSize, total - start);
+						const body = await readChunk(path, start, length);
+
+						const response = await putChunk(part.url, body, `Part ${part.partNumber}`);
+						if (!response.ok) {
+							throw new UploadError(
+								`Part ${part.partNumber} failed (${response.status}).`,
+								null,
+							);
+						}
+
+						const etag = response.headers.get("etag");
+						if (!etag) {
+							throw new UploadError(
+								"Storage returned no ETag — check the bucket CORS configuration.",
+								null,
+							);
+						}
+
+						etags.push({ partNumber: part.partNumber, etag });
+						uploaded += length;
+						render();
+					}
+				}),
+			);
+			completeBody = { fileId: intent.fileId, parts: etags };
 		}
-		uploaded = total;
-		render();
-		completeBody = { fileId: intent.fileId };
-	} else {
-		const partSize = intent.partSize as number;
-		const parts = intent.parts ?? [];
-		const etags: { partNumber: number; etag: string }[] = [];
-		let cursor = 0;
-
-		await Promise.all(
-			Array.from({ length: Math.min(CONCURRENCY, parts.length) }, async () => {
-				while (cursor < parts.length) {
-					const part = parts[cursor++];
-					const start = (part.partNumber - 1) * partSize;
-					const length = Math.min(partSize, total - start);
-					const body = await readChunk(path, start, length);
-
-					const response = await fetch(part.url, { method: "PUT", body });
-					if (!response.ok) {
-						await abort(config, intent.fileId);
-						fail(`Part ${part.partNumber} failed (${response.status}).`);
-					}
-
-					const etag = response.headers.get("etag");
-					if (!etag) {
-						await abort(config, intent.fileId);
-						fail("Storage returned no ETag — check the bucket CORS configuration.");
-					}
-
-					etags.push({ partNumber: part.partNumber, etag });
-					uploaded += length;
-					render();
-				}
-			}),
-		);
-		completeBody = { fileId: intent.fileId, parts: etags };
+	} catch (error) {
+		await abort(config, intent.fileId);
+		throw error;
 	}
 
 	if (isTTY) process.stderr.write("\n");
@@ -451,4 +522,4 @@ async function main(): Promise<void> {
 	}
 }
 
-main().catch((error) => fail((error as Error).message));
+main().catch((error) => fail((error as Error).message, (error as Error).cause));

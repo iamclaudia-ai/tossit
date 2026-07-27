@@ -1,0 +1,45 @@
+{
+	"name": "tossit",
+	"description": "Private file sharing for files too big to email.",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "react-router build",
+		"check": "biome check .",
+		"check:fix": "biome check --write .",
+		"cf-typegen": "wrangler types && react-router typegen",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "wrangler d1 migrations apply tossit --local",
+		"db:migrate:remote": "wrangler d1 migrations apply tossit --remote",
+		"deploy": "wrangler deploy",
+		"dev": "react-router dev",
+		"preview": "bun run build && vite preview",
+		"typecheck": "bun run cf-typegen && tsc -b"
+	},
+	"dependencies": {
+		"@simplewebauthn/browser": "^13.3.0",
+		"@simplewebauthn/server": "^13.3.2",
+		"aws4fetch": "^1.0.20",
+		"drizzle-orm": "^0.45.2",
+		"isbot": "5.1.32",
+		"nanoid": "^6.0.0",
+		"react": "19.2.1",
+		"react-dom": "19.2.1",
+		"react-router": "7.9.6"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.5",
+		"@cloudflare/vite-plugin": "1.15.3",
+		"@react-router/dev": "7.9.6",
+		"@tailwindcss/vite": "4.1.17",
+		"@types/node": "^26.1.1",
+		"@types/react": "19.2.7",
+		"@types/react-dom": "19.2.3",
+		"drizzle-kit": "^0.31.10",
+		"tailwindcss": "4.1.17",
+		"typescript": "5.9.3",
+		"vite": "^7.0.0",
+		"vite-tsconfig-paths": "5.1.4",
+		"wrangler": "^4.114.0"
+	}
+}

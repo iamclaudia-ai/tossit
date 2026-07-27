@@ -1,0 +1,47 @@
+/**
+ * tossit.sh — Worker configuration.
+ * Docs: https://developers.cloudflare.com/workers/wrangler/configuration/
+ *
+ * Note: static assets are wired up automatically by @cloudflare/vite-plugin, so there is
+ * deliberately no "assets" block here.
+ */
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "tossit",
+	"main": "./workers/app.ts",
+	"compatibility_date": "2026-07-27",
+	"compatibility_flags": ["nodejs_compat"],
+	"observability": { "enabled": true },
+	"upload_source_maps": true,
+
+	/** D1 — all relational data (see PLAN.md §3). */
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "tossit",
+			// Replaced by the real id from `wrangler d1 create tossit`.
+			"database_id": "REPLACE_ME_AFTER_D1_CREATE",
+			"migrations_dir": "drizzle/migrations"
+		}
+	],
+
+	/**
+	 * R2 — download path ONLY. Uploads never touch this binding; the whole multipart
+	 * lifecycle goes over the S3 API via aws4fetch. See PLAN.md §6.
+	 */
+	"r2_buckets": [
+		{
+			"binding": "BUCKET",
+			"bucket_name": "tossit-files"
+		}
+	],
+
+	/** Daily cleanup: expired files, stale multipart uploads, dead invites/OTPs/sessions. */
+	"triggers": {
+		"crons": ["17 4 * * *"]
+	},
+
+	"vars": {
+		"APP_URL": "https://tossit.sh"
+	}
+}

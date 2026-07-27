@@ -19,7 +19,7 @@ export function meta(_: Route.MetaArgs) {
 
 export async function loader({ request, context }: Route.LoaderArgs) {
 	const env = context.cloudflare.env;
-	const { user, isOwner, uploaderScope } = await requireUser(env, request);
+	const { user, isAdmin, uploaderScope } = await requireUser(env, request);
 
 	// uploaderScope is null for the owner (sees everything) and their own id for members.
 	const rows = await getDb(env)
@@ -38,7 +38,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 	const origin = getRequestOrigin(request);
 	return {
 		email: user.email,
-		isOwner,
+		isAdmin,
 		files: rows.map((row) => ({
 			id: row.id,
 			filename: row.filename,
@@ -92,13 +92,21 @@ export default function App({ loaderData }: Route.ComponentProps) {
 					>
 						Settings
 					</Link>
-					{loaderData.isOwner && (
-						<Link
-							to="/app/invites"
-							className="rounded-lg px-3 py-1.5 text-ink-400 transition hover:bg-ink-900 hover:text-ink-200"
-						>
-							Invites
-						</Link>
+					{loaderData.isAdmin && (
+						<>
+							<Link
+								to="/app/users"
+								className="rounded-lg px-3 py-1.5 text-ink-400 transition hover:bg-ink-900 hover:text-ink-200"
+							>
+								People
+							</Link>
+							<Link
+								to="/app/invites"
+								className="rounded-lg px-3 py-1.5 text-ink-400 transition hover:bg-ink-900 hover:text-ink-200"
+							>
+								Invites
+							</Link>
+						</>
 					)}
 					<Form method="post" action="/auth/signout">
 						<button

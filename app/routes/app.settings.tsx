@@ -56,7 +56,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
 export async function action({ request, context }: Route.ActionArgs) {
 	const env = context.cloudflare.env;
-	const { user } = await requireUser(env, request);
+	const { user, isAdmin } = await requireUser(env, request);
 	const db = getDb(env);
 
 	const form = await request.formData();
@@ -98,7 +98,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 	if (intent === "run-cleanup") {
 		// The same job the daily cron runs. Exposed so housekeeping can be triggered and
 		// inspected on demand rather than only observed after the fact in logs.
-		if (user.role !== "owner")
+		if (!isAdmin)
 			return data({ ok: false, error: "Not found.", report: null }, { status: 404 });
 		const report = await runCleanup(env);
 		return { ok: true, error: null, report };

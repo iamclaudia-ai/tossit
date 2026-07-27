@@ -4,7 +4,7 @@ import { data, Form, Link, useFetcher } from "react-router";
 import { CopyButton } from "~/components/copy-button";
 import { getDb } from "~/db";
 import { invites } from "~/db/schema";
-import { requireOwner } from "~/lib/auth";
+import { requireAdmin } from "~/lib/auth";
 import { inviteEmail, sendEmail } from "~/lib/email.server";
 import { formatAge, formatExpiry } from "~/lib/format";
 import { getRequestOrigin } from "~/lib/origin";
@@ -19,8 +19,8 @@ const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 export async function loader({ request, context }: Route.LoaderArgs) {
 	const env = context.cloudflare.env;
-	// Only the owner issues invites; members can upload but not widen access.
-	await requireOwner(env, request);
+	// Owner and admins issue invites; members can upload but not widen access.
+	await requireAdmin(env, request);
 
 	const rows = await getDb(env)
 		.select()
@@ -48,7 +48,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
 export async function action({ request, context }: Route.ActionArgs) {
 	const env = context.cloudflare.env;
-	const { user } = await requireOwner(env, request);
+	const { user } = await requireAdmin(env, request);
 
 	const form = await request.formData();
 	const kind = form.get("kind");

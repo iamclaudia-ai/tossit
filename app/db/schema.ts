@@ -16,7 +16,13 @@ export const users = sqliteTable("users", {
 	id: text("id").primaryKey(),
 	email: text("email").notNull().unique(),
 	name: text("name"),
-	role: text("role", { enum: ["owner", "member"] })
+	/**
+	 * owner  — exactly one, created by bootstrap. Its role can never be changed through the
+	 *          app, so the account can't be locked out or demoted by anyone.
+	 * admin  — everything an owner can do except touch the owner's role.
+	 * member — uploads and manages only their own files.
+	 */
+	role: text("role", { enum: ["owner", "admin", "member"] })
 		.notNull()
 		.default("member"),
 	createdAt: integer("created_at").notNull().$defaultFn(now),

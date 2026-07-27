@@ -32,6 +32,7 @@ export default [
 	route("app/files/:id/delete", "routes/app.files.$id.delete.ts"),
 	route("app/files/:id/settings", "routes/app.files.$id.settings.ts"),
 	route("app/settings", "routes/app.settings.tsx"),
+	route("app/users", "routes/app.users.tsx"),
 	route("app/invites", "routes/app.invites.tsx"),
 	route("app/invites/:id/revoke", "routes/app.invites.$id.revoke.ts"),
 ] satisfies RouteConfig;

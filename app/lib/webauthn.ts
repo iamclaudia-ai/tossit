@@ -2,6 +2,7 @@ import { eq, lt } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getDb } from "~/db";
 import { webauthnChallenges } from "~/db/schema";
+import { getRequestOrigin } from "./origin";
 
 /**
  * WebAuthn plumbing shared by registration and authentication.
@@ -25,7 +26,8 @@ export function getRpConfig(request: Request): RpConfig {
 		// rpID is a bare domain — no port, no scheme. localhost is valid as-is.
 		rpID: url.hostname,
 		rpName: "tossit.sh",
-		origin: url.origin,
+		// Not url.origin: behind a TLS-terminating proxy that reports http. See origin.ts.
+		origin: getRequestOrigin(request),
 	};
 }
 

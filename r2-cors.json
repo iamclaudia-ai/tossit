@@ -2,7 +2,11 @@
 	"rules": [
 		{
 			"allowed": {
-				"origins": ["https://tossit.sh", "http://localhost:5173"],
+				"origins": [
+					"https://tossit.sh",
+					"https://local.tossit.sh",
+					"http://localhost:5173"
+				],
 				"methods": ["PUT", "GET", "HEAD"],
 				"headers": ["content-type", "content-length"]
 			},

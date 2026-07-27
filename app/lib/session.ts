@@ -2,6 +2,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { createCookie } from "react-router";
 import { getDb } from "~/db";
 import { sessions, users } from "~/db/schema";
+import { isSecureOrigin } from "./origin";
 import { generateSessionId } from "./tokens";
 
 /**
@@ -13,15 +14,17 @@ const COOKIE_NAME = "__tossit_session";
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 /**
- * Built per request because the signing secret lives in env, which only exists at request
- * time on Workers.
+ * Built per request: the signing secret lives in env (only available at request time on
+ * Workers), and `secure` has to follow the origin the browser actually used. Hardcoding
+ * secure=true silently drops the cookie on plain-http localhost; hardcoding false would ship
+ * a non-secure session cookie to production.
  */
-function sessionCookie(env: Env) {
+function sessionCookie(env: Env, request: Request) {
 	return createCookie(COOKIE_NAME, {
 		httpOnly: true,
 		sameSite: "lax",
 		path: "/",
-		secure: env.APP_URL.startsWith("https://"),
+		secure: isSecureOrigin(request),
 		secrets: [env.SESSION_SECRET],
 		maxAge: SESSION_TTL_MS / 1000,
 	});
@@ -44,12 +47,14 @@ export async function createSession(
 		expiresAt: now + SESSION_TTL_MS,
 	});
 
-	return await sessionCookie(env).serialize(id);
+	return await sessionCookie(env, request).serialize(id);
 }
 
 /** The signed-in user, or null. Does not write on the read path. */
 export async function getUser(env: Env, request: Request) {
-	const sessionId = await sessionCookie(env).parse(request.headers.get("cookie"));
+	const sessionId = await sessionCookie(env, request).parse(
+		request.headers.get("cookie"),
+	);
 	if (typeof sessionId !== "string" || !sessionId) return null;
 
 	const db = getDb(env);
@@ -65,12 +70,14 @@ export async function getUser(env: Env, request: Request) {
 }
 
 export async function destroySession(env: Env, request: Request): Promise<string> {
-	const sessionId = await sessionCookie(env).parse(request.headers.get("cookie"));
+	const sessionId = await sessionCookie(env, request).parse(
+		request.headers.get("cookie"),
+	);
 	if (typeof sessionId === "string" && sessionId) {
 		await getDb(env)
 			.update(sessions)
 			.set({ revokedAt: Date.now() })
 			.where(eq(sessions.id, sessionId));
 	}
-	return await sessionCookie(env).serialize("", { maxAge: 0 });
+	return await sessionCookie(env, request).serialize("", { maxAge: 0 });
 }

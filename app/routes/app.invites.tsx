@@ -1,10 +1,11 @@
 import { desc } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { Form, Link, useFetcher } from "react-router";
+import { data, Form, Link, useFetcher } from "react-router";
 import { CopyButton } from "~/components/copy-button";
 import { getDb } from "~/db";
 import { invites } from "~/db/schema";
 import { requireOwner } from "~/lib/auth";
+import { inviteEmail, sendEmail } from "~/lib/email.server";
 import { formatAge, formatExpiry } from "~/lib/format";
 import { getRequestOrigin } from "~/lib/origin";
 import { generateInviteCode } from "~/lib/tokens";
@@ -52,33 +53,73 @@ export async function action({ request, context }: Route.ActionArgs) {
 	const form = await request.formData();
 	const kind = form.get("kind");
 	if (kind !== "upload" && kind !== "account") {
-		return Response.json({ error: "Pick an invite type." }, { status: 400 });
+		// Every branch returns the same shape so actionData stays a single type.
+		return data(
+			{ ok: false, emailed: null, warning: null, error: "Pick an invite type." },
+			{ status: 400 },
+		);
 	}
 
 	const label = (form.get("label") as string | null)?.trim() || null;
 	const email = (form.get("email") as string | null)?.trim().toLowerCase() || null;
 
 	const now = Date.now();
+	const code = generateInviteCode();
+	const expiresAt = now + INVITE_TTL_MS;
+
 	await getDb(env)
 		.insert(invites)
 		.values({
 			id: nanoid(),
-			code: generateInviteCode(),
+			code,
 			kind,
 			label: label?.slice(0, 120) ?? null,
+			// Only account invites bind to an address; an upload invite emailed to someone is
+			// still usable by whoever holds the link.
 			email: kind === "account" ? email : null,
-			// Upload invites are single-use by design; account invites don't use this field.
 			maxUploads: kind === "upload" ? 1 : null,
 			uses: 0,
 			createdBy: user.id,
 			createdAt: now,
-			expiresAt: now + INVITE_TTL_MS,
+			expiresAt,
 		});
 
-	return Response.json({ ok: true });
+	const url = `${getRequestOrigin(request)}/i/${code}`;
+
+	// Deliver the link ourselves when an address is given. The invite is already saved, so a
+	// send failure degrades to "copy the link" rather than losing the invite.
+	if (email) {
+		try {
+			await sendEmail(env, {
+				to: email,
+				...inviteEmail({ url, kind, label, expiresAt }),
+			});
+			return {
+				ok: true,
+				emailed: email as string | null,
+				warning: null as string | null,
+				error: null as string | null,
+			};
+		} catch (error) {
+			console.error("Invite send failed:", (error as Error).message);
+			return {
+				ok: true,
+				emailed: null,
+				error: null,
+				warning: `Invite created, but the email to ${email} didn't send. Copy the link instead.`,
+			};
+		}
+	}
+
+	return {
+		ok: true,
+		emailed: null as string | null,
+		warning: null as string | null,
+		error: null as string | null,
+	};
 }
 
-export default function Invites({ loaderData }: Route.ComponentProps) {
+export default function Invites({ loaderData, actionData }: Route.ComponentProps) {
 	return (
 		<div className="min-h-dvh">
 			<header className="mx-auto flex max-w-3xl items-center justify-between px-6 py-5">
@@ -131,7 +172,8 @@ export default function Invites({ loaderData }: Route.ComponentProps) {
 
 						<label className="flex min-w-48 flex-1 flex-col gap-1">
 							<span className="font-medium text-ink-500 text-xs uppercase tracking-wide">
-								Email <span className="normal-case">(account invites only)</span>
+								Email{" "}
+								<span className="normal-case">(optional — we'll send the link)</span>
 							</span>
 							<input
 								name="email"
@@ -149,8 +191,28 @@ export default function Invites({ loaderData }: Route.ComponentProps) {
 						</button>
 					</div>
 					<p className="mt-3 text-ink-700 text-xs">
-						Invites expire after 7 days. Upload links work once, then die.
+						Invites expire after 7 days. Upload links work once, then die. Leave the email
+						blank to get a link you can send yourself.
 					</p>
+
+					{/* Create used to succeed silently, which read as "nothing happened". */}
+					{actionData?.emailed && (
+						<p className="mt-3 flex items-center gap-2 text-accent text-sm">
+							<span className="size-1.5 rounded-full bg-accent" />
+							Invitation sent to {actionData.emailed}
+						</p>
+					)}
+					{actionData?.warning && (
+						<p className="mt-3 text-amber-400 text-sm">{actionData.warning}</p>
+					)}
+					{actionData?.error && (
+						<p className="mt-3 text-rose-400 text-sm">{actionData.error}</p>
+					)}
+					{actionData?.ok && !actionData.emailed && !actionData.warning && (
+						<p className="mt-3 text-ink-400 text-sm">
+							Invite created — copy the link below and send it.
+						</p>
+					)}
 				</Form>
 
 				{loaderData.invites.length > 0 && (

@@ -8,8 +8,17 @@ export default [
 	route("d/:slug", "routes/download.tsx"),
 	route("d/:slug/raw", "routes/download.raw.ts"),
 
+	// Invites (public)
+	route("i/:code", "routes/invite.tsx"),
+	route("i/:code/upload-intent", "routes/invite.upload-intent.ts"),
+	route("i/:code/upload-parts", "routes/invite.upload-parts.ts"),
+	route("i/:code/upload-complete", "routes/invite.upload-complete.ts"),
+	route("i/:code/upload-abort", "routes/invite.upload-abort.ts"),
+
 	// Auth
 	route("auth/passkey/options", "routes/auth.passkey.options.ts"),
+	route("auth/otp/request", "routes/auth.otp.request.ts"),
+	route("auth/otp/verify", "routes/auth.otp.verify.ts"),
 	route("auth/passkey/verify", "routes/auth.passkey.verify.ts"),
 	route("auth/passkey/register", "routes/auth.passkey.register.ts"),
 	route("auth/signout", "routes/auth.signout.ts"),
@@ -22,4 +31,6 @@ export default [
 	route("app/upload-abort", "routes/app.upload-abort.ts"),
 	route("app/files/:id/delete", "routes/app.files.$id.delete.ts"),
 	route("app/files/:id/settings", "routes/app.files.$id.settings.ts"),
+	route("app/invites", "routes/app.invites.tsx"),
+	route("app/invites/:id/revoke", "routes/app.invites.$id.revoke.ts"),
 ] satisfies RouteConfig;

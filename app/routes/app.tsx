@@ -1,6 +1,6 @@
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { useCallback, useEffect, useState } from "react";
-import { Form, useRevalidator } from "react-router";
+import { Form, Link, useRevalidator } from "react-router";
 import { copyText } from "~/components/copy-button";
 import { Dropzone } from "~/components/dropzone";
 import { FileRow } from "~/components/file-row";
@@ -19,7 +19,7 @@ export function meta(_: Route.MetaArgs) {
 
 export async function loader({ request, context }: Route.LoaderArgs) {
 	const env = context.cloudflare.env;
-	const { user, uploaderScope } = await requireUser(env, request);
+	const { user, isOwner, uploaderScope } = await requireUser(env, request);
 
 	// uploaderScope is null for the owner (sees everything) and their own id for members.
 	const rows = await getDb(env)
@@ -38,6 +38,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 	const origin = getRequestOrigin(request);
 	return {
 		email: user.email,
+		isOwner,
 		files: rows.map((row) => ({
 			id: row.id,
 			filename: row.filename,
@@ -84,7 +85,15 @@ export default function App({ loaderData }: Route.ComponentProps) {
 					toss<span className="text-accent">it</span>
 				</span>
 				<div className="flex items-center gap-3 text-sm">
-					<span className="text-ink-500">{loaderData.email}</span>
+					<span className="hidden text-ink-500 sm:inline">{loaderData.email}</span>
+					{loaderData.isOwner && (
+						<Link
+							to="/app/invites"
+							className="rounded-lg px-3 py-1.5 text-ink-400 transition hover:bg-ink-900 hover:text-ink-200"
+						>
+							Invites
+						</Link>
+					)}
 					<Form method="post" action="/auth/signout">
 						<button
 							type="submit"

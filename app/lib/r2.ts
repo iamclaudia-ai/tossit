@@ -230,3 +230,49 @@ export function buildR2Key(fileId: string, filename: string): string {
 		.trim();
 	return `${fileId}/${safe || "file"}`;
 }
+
+export interface R2Object {
+	key: string;
+	size: number;
+	lastModified: number;
+}
+
+/**
+ * Lists objects in the bucket, following continuation tokens.
+ *
+ * Only used by the nightly reconcile — the app never needs to enumerate storage, since the
+ * database is the index.
+ */
+export async function listObjects(config: R2Config, limit = 5_000): Promise<R2Object[]> {
+	const aws = client(config);
+	const objects: R2Object[] = [];
+	let token: string | null = null;
+
+	do {
+		const url = new URL(`${config.endpoint}/${config.bucket}`);
+		url.searchParams.set("list-type", "2");
+		url.searchParams.set("max-keys", "1000");
+		if (token) url.searchParams.set("continuation-token", token);
+
+		const response = await aws.fetch(url.toString());
+		await assertOk(response, "listObjects");
+		const xml = await response.text();
+
+		for (const match of xml.matchAll(
+			/<Contents>[\s\S]*?<Key>([^<]+)<\/Key>[\s\S]*?<LastModified>([^<]+)<\/LastModified>[\s\S]*?<Size>(\d+)<\/Size>[\s\S]*?<\/Contents>/g,
+		)) {
+			objects.push({
+				key: match[1],
+				lastModified: Date.parse(match[2]),
+				size: Number(match[3]),
+			});
+			if (objects.length >= limit) return objects;
+		}
+
+		const truncated = /<IsTruncated>true<\/IsTruncated>/.test(xml);
+		const next = xml.match(/<NextContinuationToken>([^<]+)<\/NextContinuationToken>/);
+		token = truncated && next ? next[1] : null;
+	} while (token);
+
+	return objects;
+}

@@ -2,7 +2,7 @@ import { and, eq, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
 import { getDb } from "~/db";
 import { files, invites, otpCodes, sessions, webauthnChallenges } from "~/db/schema";
 import { purgeExpiredDeviceAuths } from "./device.server";
-import { abortMultipartUpload, deleteObject, getR2Config } from "./r2";
+import { abortMultipartUpload, deleteObject, getR2Config, listObjects } from "./r2";
 
 /**
  * Daily housekeeping — PLAN.md §7. Runs from the cron trigger.
@@ -16,6 +16,23 @@ const STALE_UPLOAD_MS = 24 * 60 * 60 * 1000;
 /** How long a deleted file's row is kept so its slug can never be reissued. */
 const TOMBSTONE_MS = 90 * 24 * 60 * 60 * 1000;
 
+/**
+ * Whether a stored object should be swept.
+ *
+ * Extracted so the rule is testable without backdating objects in storage, which the S3 API
+ * gives no way to do.
+ */
+export function isSweepableOrphan(
+	object: { key: string; lastModified: number },
+	knownKeys: Set<string>,
+	now: number,
+): boolean {
+	// An upload in flight has no completed row yet; deleting its bytes mid-transfer would be
+	// its own bug.
+	if (object.lastModified > now - STALE_UPLOAD_MS) return false;
+	return !knownKeys.has(object.key);
+}
+
 export interface CleanupReport {
 	expiredFiles: number;
 	staleUploads: number;
@@ -25,6 +42,7 @@ export interface CleanupReport {
 	challenges: number;
 	invites: number;
 	deviceAuths: number;
+	orphanedObjects: number;
 	errors: string[];
 }
 
@@ -41,6 +59,7 @@ export async function runCleanup(env: Env): Promise<CleanupReport> {
 		challenges: 0,
 		invites: 0,
 		deviceAuths: 0,
+		orphanedObjects: 0,
 		errors: [],
 	};
 
@@ -130,6 +149,34 @@ export async function runCleanup(env: Env): Promise<CleanupReport> {
 
 	// Stale login requests, including any token that was approved but never collected.
 	report.deviceAuths = await purgeExpiredDeviceAuths(env);
+
+	// 6. Reconcile storage against the database.
+	//
+	// The database is the index; an object with no row is unreachable through the app and
+	// simply costs money. These accumulate whenever a delete half-succeeds — the R2 call is
+	// intentionally best-effort so a storage hiccup can't block a deletion the user asked for,
+	// which means something has to sweep up afterwards. Nothing did until now.
+	try {
+		const objects = await listObjects(config);
+		if (objects.length > 0) {
+			const known = new Set(
+				(await db.select({ key: files.r2Key }).from(files).all()).map((row) => row.key),
+			);
+
+			for (const object of objects) {
+				if (!isSweepableOrphan(object, known, now)) continue;
+
+				try {
+					await deleteObject(config, object.key);
+					report.orphanedObjects++;
+				} catch (error) {
+					report.errors.push(`orphan ${object.key}: ${(error as Error).message}`);
+				}
+			}
+		}
+	} catch (error) {
+		report.errors.push(`reconcile: ${(error as Error).message}`);
+	}
 
 	return report;
 }

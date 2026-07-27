@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { blob, index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 /**
  * Data model for tossit.sh — see PLAN.md §3.
@@ -31,7 +31,8 @@ export const credentials = sqliteTable(
 		userId: text("user_id")
 			.notNull()
 			.references(() => users.id, { onDelete: "cascade" }),
-		publicKey: blob("public_key", { mode: "buffer" }).notNull(),
+		/** COSE public key, base64url. Text rather than a blob so nothing needs node Buffer. */
+		publicKey: text("public_key").notNull(),
 		counter: integer("counter").notNull().default(0),
 		/** JSON array of AuthenticatorTransport. */
 		transports: text("transports"),

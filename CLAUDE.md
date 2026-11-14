@@ -85,3 +85,22 @@ works until it doesn't.
   launch, and dozens of them in a loop is what jams the shell.
 - No virus scanning, by design. The download page shows the original filename and size and
   never auto-downloads.
+- On this Mac, `bun run typecheck` can fail in `cf-typegen` with `EINVAL … scandir
+  ~/Library/Developer/CoreDevice/DeviceFS/…` (react-router typegen wanders into a mounted
+  device's filesystem). That's local only; `./node_modules/.bin/tsc -b` checks the types, and CI runs
+  the full script on Linux.
+
+## Releasing the CLI
+
+`@iamclaudia/tossit` (in `cli/`) is published by the `iamclaudia-ai` account. CLI releases use
+their own tags, `cli-vX.Y.Z`, separate from app deploys.
+
+1. Bump `version` in `cli/package.json` and commit `chore(cli): release vX.Y.Z` on `main`.
+2. `git tag -a cli-vX.Y.Z -m "CLI vX.Y.Z — summary" && git push && git push origin cli-vX.Y.Z`
+3. The tag runs `.github/workflows/publish.yml`: checks, verifies the tag matches
+   `cli/package.json`, builds `cli/dist/tossit.js`, and publishes with npm trusted publishing
+   (OIDC, no token). Watch with `gh run watch`, confirm with
+   `npm view @iamclaudia/tossit version --prefer-online` (npm lags a minute or two; never re-publish).
+
+The trusted publisher on npmjs.com names this repo and `publish.yml`; renaming the workflow
+breaks publishing until that setting matches.

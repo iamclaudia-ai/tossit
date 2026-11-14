@@ -1,0 +1,65 @@
+# Checks every PR and push to main; publishes the CLI (@iamclaudia/tossit, in
+# cli/) to npm when a cli-v* tag is pushed. The app deploys separately with
+# wrangler, so CLI releases get their own tag prefix.
+#
+# Publishing uses npm trusted publishing (OIDC): npmjs.com trusts this workflow
+# file by name, so no npm token is stored anywhere. Renaming this file breaks
+# publishing until the trusted publisher on npmjs.com is updated to match.
+name: publish
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ["cli-v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.4
+      - run: bun install --frozen-lockfile
+      - run: bun run check
+      - run: bun run typecheck
+      - run: bun run build
+        working-directory: cli
+
+  publish:
+    needs: check
+    if: startsWith(github.ref, 'refs/tags/cli-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # mints the OIDC token npm exchanges for publish rights
+    defaults:
+      run:
+        working-directory: cli
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The package ships dist/tossit.js, which Bun builds from tossit.ts.
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.4
+      # Trusted publishing needs npm >= 11.5.1, which Node 24 bundles. No
+      # package cache: npm warns against caching in release builds.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - name: Tag matches cli/package.json version
+        run: |
+          version="cli-v$(node -p 'require("./package.json").version')"
+          if [ "$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match cli/package.json version $version"
+            exit 1
+          fi
+      - run: bun run build
+      # Built above, so skip prepublishOnly (it would rebuild the same file).
+      - run: npm --version && npm publish --ignore-scripts

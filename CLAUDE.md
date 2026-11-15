@@ -5,9 +5,14 @@ Live at <https://tossit.sh>. See README.md for setup, scripts, and deployment.
 
 ## Shape of the thing
 
-React Router v7 (framework mode, SSR) on Cloudflare Workers. D1 + Drizzle for metadata, R2 for
+React Router v8 (framework mode, SSR) on Cloudflare Workers. D1 + Drizzle for metadata, R2 for
 bytes, passkeys for auth, Tailwind v4, bun. One Worker serves the app, the download stream, and
 the nightly cron.
+
+Bun installs packages and runs the scripts, but the toolchain that builds and deploys the Worker
+(react-router, wrangler, Vite) runs on Node, so Node is pinned in `mise.toml` (26, the current
+LTS) and CI reads the same file. `@types/node` follows that major. The Worker itself runs on
+workerd with `nodejs_compat`, not on Node.
 
 ## Ground rules
 

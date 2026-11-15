@@ -13,13 +13,13 @@ Or without installing: `npx @iamclaudia/tossit ~/video.mov`
 
 ## Commands
 
-| | |
-| --- | --- |
-| `tossit <file>` | Upload a file and print its link |
-| `tossit login` | Link this terminal to your account |
-| `tossit logout` | Forget the local token |
+|                 |                                        |
+| --------------- | -------------------------------------- |
+| `tossit <file>` | Upload a file and print its link       |
+| `tossit login`  | Link this terminal to your account     |
+| `tossit logout` | Forget the local token                 |
 | `tossit whoami` | Show who this terminal is signed in as |
-| `tossit list` | Recent uploads |
+| `tossit list`   | Recent uploads                         |
 
 **Options** — `--copy` also copies the link to the clipboard, `--host <url>` overrides
 the server for one command, `--version` prints the version.

@@ -16,7 +16,7 @@ There's a CLI too: [`@iamclaudia/tossit`](./cli) — `tossit ~/video.mov` prints
   account, no app, no interstitial.
 - **Control** — set expiry (1 hour to never) and a download cap per link, or delete a link and
   its bytes outright.
-- **Receive** — send someone a one-time upload link and they can send *you* a file, with no
+- **Receive** — send someone a one-time upload link and they can send _you_ a file, with no
   account at all.
 - **Invite** — give someone their own account: email, a 6-digit code, then a passkey.
 
@@ -26,7 +26,7 @@ React Router v7 (framework mode, SSR) on Cloudflare Workers · D1 + Drizzle · R
 `@simplewebauthn` · Resend for invite codes · Tailwind v4 · bun.
 
 Uploads never pass through the Worker — the browser talks to R2 directly over presigned
-multipart URLs. Downloads *do* stream through the Worker, which is what makes expiry, download
+multipart URLs. Downloads _do_ stream through the Worker, which is what makes expiry, download
 caps, and revocation enforceable. See [CLAUDE.md](./CLAUDE.md) for the architectural rules and
 why each one exists.
 
@@ -72,27 +72,27 @@ bucket, so a local simulation would 404 on files that plainly exist.
 
 ## Scripts
 
-| Command | What it does |
-| --- | --- |
-| `bun run dev` | Dev server, local D1 + real R2 |
-| `bun run check` | Biome lint + format (`check:fix` to write) |
-| `bun run typecheck` | Regenerate binding types, then `tsc -b` |
-| `bun run db:generate` | Generate a migration from `app/db/schema.ts` |
-| `bun run db:migrate` | Apply migrations locally (`:remote` for production) |
-| `bun run cli:build` | Build the CLI to `cli/dist` |
-| `bun run deploy` | `wrangler deploy` |
+| Command               | What it does                                        |
+| --------------------- | --------------------------------------------------- |
+| `bun run dev`         | Dev server, local D1 + real R2                      |
+| `bun run check`       | Biome lint + format (`check:fix` to write)          |
+| `bun run typecheck`   | Regenerate binding types, then `tsc -b`             |
+| `bun run db:generate` | Generate a migration from `app/db/schema.ts`        |
+| `bun run db:migrate`  | Apply migrations locally (`:remote` for production) |
+| `bun run cli:build`   | Build the CLI to `cli/dist`                         |
+| `bun run deploy`      | `wrangler deploy`                                   |
 
 `bun run scripts/r2-roundtrip.ts 250` uploads a 250 MB file through the real multipart path and
 compares SHA-256 on the way back — useful for confirming storage credentials and CORS.
 
 ## Roles
 
-| | owner | admin | member |
-| --- | --- | --- | --- |
-| Upload, get links | ✅ | ✅ | ✅ |
-| See all files | ✅ | ✅ | own only |
-| Invites, People, cleanup | ✅ | ✅ | — |
-| Change the owner | — | — | — |
+|                          | owner | admin | member   |
+| ------------------------ | ----- | ----- | -------- |
+| Upload, get links        | ✅    | ✅    | ✅       |
+| See all files            | ✅    | ✅    | own only |
+| Invites, People, cleanup | ✅    | ✅    | —        |
+| Change the owner         | —     | —     | —        |
 
 There is exactly one owner, created by bootstrap. Its role can't be changed through the app by
 anyone, including itself, so there is always an account that can get back in.

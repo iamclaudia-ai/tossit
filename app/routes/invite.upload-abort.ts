@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { cloudflareContext } from "~/context";
 import { getDb } from "~/db";
 import { files } from "~/db/schema";
 import { resolveInvite } from "~/lib/invites.server";
@@ -8,7 +9,7 @@ import type { Route } from "./+types/invite.upload-abort";
 
 /** Cancel an anonymous upload. No invite use is burned, because none was consumed yet. */
 export async function action({ params, request, context }: Route.ActionArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 
 	const resolution = await resolveInvite(env, params.code);
 	// Abort stays permissive: cleaning up after a revoked or spent invite is still worth doing.

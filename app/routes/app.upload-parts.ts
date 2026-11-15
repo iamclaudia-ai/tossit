@@ -1,3 +1,4 @@
+import { cloudflareContext } from "~/context";
 import { requireUser } from "~/lib/auth";
 import { getR2Config, presignParts } from "~/lib/r2";
 import { loadPendingUpload } from "~/lib/upload.server";
@@ -9,7 +10,7 @@ import type { Route } from "./+types/app.upload-parts";
  * be absurd. Only the parts that need it are reissued.
  */
 export async function action({ request, context }: Route.ActionArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 	const { user } = await requireUser(env, request);
 
 	const body = (await request.json()) as {

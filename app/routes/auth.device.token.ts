@@ -1,9 +1,10 @@
+import { cloudflareContext } from "~/context";
 import { pollDeviceAuth } from "~/lib/device.server";
 import type { Route } from "./+types/auth.device.token";
 
 /** The CLI polls here until the request is approved, expires, or is denied. */
 export async function action({ request, context }: Route.ActionArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 
 	const body = (await request.json().catch(() => ({}))) as { deviceCode?: string };
 	if (!body.deviceCode) {

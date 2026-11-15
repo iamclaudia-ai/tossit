@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { cloudflareContext } from "~/context";
 import { getDb } from "~/db";
 import { files } from "~/db/schema";
 import { requireUser } from "~/lib/auth";
@@ -12,7 +13,7 @@ import type { Route } from "./+types/app.files.$id.settings";
 
 /** Change a link's expiry and download cap after the fact. */
 export async function action({ params, request, context }: Route.ActionArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 	const authed = await requireUser(env, request);
 
 	const file = await loadManageableFile(env, params.id, authed);

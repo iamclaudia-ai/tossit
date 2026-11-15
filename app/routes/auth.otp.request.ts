@@ -1,3 +1,4 @@
+import { cloudflareContext } from "~/context";
 import { otpEmail, sendEmail } from "~/lib/email.server";
 import { resolveInvite } from "~/lib/invites.server";
 import { issueOtp, looksLikeEmail } from "~/lib/otp.server";
@@ -5,7 +6,7 @@ import type { Route } from "./+types/auth.otp.request";
 
 /** Sends a verification code for an account invite. */
 export async function action({ request, context }: Route.ActionArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 	const body = (await request.json()) as { code?: string; email?: string };
 
 	const email = body.email?.trim().toLowerCase() ?? "";

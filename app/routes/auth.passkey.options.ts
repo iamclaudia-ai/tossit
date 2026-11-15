@@ -1,4 +1,5 @@
 import { generateAuthenticationOptions } from "@simplewebauthn/server";
+import { cloudflareContext } from "~/context";
 import { getRpConfig, storeChallenge } from "~/lib/webauthn";
 import type { Route } from "./+types/auth.passkey.options";
 
@@ -10,7 +11,7 @@ import type { Route } from "./+types/auth.passkey.options";
  * That also means this endpoint leaks nothing about which accounts exist.
  */
 export async function action({ request, context }: Route.ActionArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 	const rp = getRpConfig(request);
 
 	const options = await generateAuthenticationOptions({

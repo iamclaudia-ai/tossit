@@ -1,6 +1,7 @@
 import type { AuthenticationResponseJSON } from "@simplewebauthn/server";
 import { verifyAuthenticationResponse } from "@simplewebauthn/server";
 import { eq } from "drizzle-orm";
+import { cloudflareContext } from "~/context";
 import { getDb } from "~/db";
 import { credentials } from "~/db/schema";
 import { createSession } from "~/lib/session";
@@ -9,7 +10,7 @@ import type { Route } from "./+types/auth.passkey.verify";
 
 /** Finish passkey authentication: verify the assertion, then mint a session. */
 export async function action({ request, context }: Route.ActionArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 	const body = (await request.json()) as {
 		challengeId?: string;
 		response?: AuthenticationResponseJSON;

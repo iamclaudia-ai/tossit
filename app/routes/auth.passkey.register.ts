@@ -4,6 +4,7 @@ import {
 	verifyRegistrationResponse,
 } from "@simplewebauthn/server";
 import { eq } from "drizzle-orm";
+import { cloudflareContext } from "~/context";
 import { getDb } from "~/db";
 import { credentials, users } from "~/db/schema";
 import { getOptionalUser } from "~/lib/auth";
@@ -67,7 +68,7 @@ async function resolveRegistrant(env: Env, request: Request): Promise<Registrant
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 	const body = (await request.json()) as {
 		intent: "options" | "verify";
 		challengeId?: string;

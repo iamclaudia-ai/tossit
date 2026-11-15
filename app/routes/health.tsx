@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { cloudflareContext } from "~/context";
 import { getDb } from "~/db";
 import type { Route } from "./+types/health";
 
@@ -7,7 +8,7 @@ import type { Route } from "./+types/health";
  * Not linked from anywhere; hit it directly at /health.
  */
 export async function loader({ context }: Route.LoaderArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 	const checks: Record<string, string> = {};
 
 	try {

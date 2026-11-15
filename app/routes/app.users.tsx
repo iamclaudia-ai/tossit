@@ -1,6 +1,7 @@
 import { asc, eq, sql } from "drizzle-orm";
 import { useState } from "react";
 import { data, Link, useFetcher } from "react-router";
+import { cloudflareContext } from "~/context";
 import { getDb } from "~/db";
 import { credentials, files, sessions, users } from "~/db/schema";
 import { requireAdmin } from "~/lib/auth";
@@ -12,7 +13,7 @@ export function meta() {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 	const { user } = await requireAdmin(env, request);
 	const db = getDb(env);
 
@@ -37,7 +38,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 	const { user } = await requireAdmin(env, request);
 	const db = getDb(env);
 

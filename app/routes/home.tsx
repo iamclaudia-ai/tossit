@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { useState } from "react";
 import { redirect, useNavigate } from "react-router";
+import { cloudflareContext } from "~/context";
 import { getDb } from "~/db";
 import { credentials, users } from "~/db/schema";
 import { getOptionalUser } from "~/lib/auth";
@@ -18,7 +19,7 @@ export function meta(_: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 	if (await getOptionalUser(env, request)) throw redirect("/app");
 
 	// The bootstrap window: the owner row exists but has no passkey yet, so the first visit

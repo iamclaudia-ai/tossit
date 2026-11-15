@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { cloudflareContext } from "~/context";
 import { getDb } from "~/db";
 import { invites } from "~/db/schema";
 import { requireAdmin } from "~/lib/auth";
@@ -6,7 +7,7 @@ import type { Route } from "./+types/app.invites.$id.revoke";
 
 /** Kills an invite immediately. Already-claimed accounts are unaffected — revoke the user. */
 export async function action({ params, request, context }: Route.ActionArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 	await requireAdmin(env, request);
 
 	const db = getDb(env);

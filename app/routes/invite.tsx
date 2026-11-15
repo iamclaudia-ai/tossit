@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { data, useNavigate } from "react-router";
 import { Dropzone } from "~/components/dropzone";
+import { cloudflareContext } from "~/context";
 import { useUploads } from "~/hooks/use-uploads";
 import { formatBytes } from "~/lib/format";
 import { type InviteRejection, resolveInvite } from "~/lib/invites.server";
@@ -21,7 +22,7 @@ export const headers: Route.HeadersFunction = () => ({
 });
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 
 	const limited = await checkRateLimit(env.INVITE_RATE, request, "i");
 	if (limited) return limited;

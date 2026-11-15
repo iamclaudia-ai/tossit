@@ -1,3 +1,4 @@
+import { cloudflareContext } from "~/context";
 import { startDeviceAuth } from "~/lib/device.server";
 import { getRequestOrigin } from "~/lib/origin";
 import type { Route } from "./+types/auth.device.start";
@@ -7,7 +8,7 @@ import type { Route } from "./+types/auth.device.start";
  * request that is worthless until a signed-in human approves it in a browser.
  */
 export async function action({ request, context }: Route.ActionArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 
 	let label: string | undefined;
 	try {

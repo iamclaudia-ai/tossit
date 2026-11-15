@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { cloudflareContext } from "~/context";
 import { getDb } from "~/db";
 import { files } from "~/db/schema";
 import { requireUser } from "~/lib/auth";
@@ -17,7 +18,7 @@ import type { Route } from "./+types/app.upload-complete";
  * Finish an upload: stitch the parts together, then trust R2 — not the client — for the size.
  */
 export async function action({ request, context }: Route.ActionArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 	const { user } = await requireUser(env, request);
 
 	const body = (await request.json()) as {

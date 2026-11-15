@@ -1,9 +1,10 @@
 import { data } from "react-router";
+import { cloudflareContext } from "~/context";
 import { type DownloadRejection, resolveDownloadable } from "~/lib/download.server";
 import { formatBytes, formatExpiry } from "~/lib/format";
 import type { Route } from "./+types/download";
 
-export function meta({ data: loaded }: Route.MetaArgs) {
+export function meta({ loaderData: loaded }: Route.MetaArgs) {
 	return [
 		{
 			title: loaded?.file
@@ -21,7 +22,10 @@ export const headers: Route.HeadersFunction = () => ({
 });
 
 export async function loader({ params, context }: Route.LoaderArgs) {
-	const resolution = await resolveDownloadable(context.cloudflare.env, params.slug);
+	const resolution = await resolveDownloadable(
+		context.get(cloudflareContext).env,
+		params.slug,
+	);
 
 	if (!resolution.ok) {
 		// Whoever opened this already holds the slug, so naming the reason leaks nothing they

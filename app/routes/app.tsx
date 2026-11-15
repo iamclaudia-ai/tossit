@@ -4,6 +4,7 @@ import { Form, Link, useRevalidator } from "react-router";
 import { copyText } from "~/components/copy-button";
 import { Dropzone } from "~/components/dropzone";
 import { FileRow } from "~/components/file-row";
+import { cloudflareContext } from "~/context";
 import { getDb } from "~/db";
 import { files } from "~/db/schema";
 import { type UploadItem, useUploads } from "~/hooks/use-uploads";
@@ -18,7 +19,7 @@ export function meta(_: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 	const { user, isAdmin, uploaderScope } = await requireUser(env, request);
 
 	// uploaderScope is null for the owner (sees everything) and their own id for members.

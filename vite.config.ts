@@ -12,6 +12,9 @@ export default defineConfig({
 		cloudflare({ viteEnvironment: { name: "ssr" } }),
 		tailwindcss(),
 		reactRouter(),
-		tsconfigPaths(),
+		// Without an explicit root the plugin crawls Vite's *workspace* root for tsconfig
+		// files, and a stray pnpm-workspace.yaml or workspaces package.json above the repo
+		// (e.g. in $HOME) turns that into a crawl of the whole home directory.
+		tsconfigPaths({ root: import.meta.dirname }),
 	],
 });

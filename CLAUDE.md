@@ -85,10 +85,10 @@ works until it doesn't.
   launch, and dozens of them in a loop is what jams the shell.
 - No virus scanning, by design. The download page shows the original filename and size and
   never auto-downloads.
-- On this Mac, `bun run typecheck` can fail in `cf-typegen` with `EINVAL … scandir
-  ~/Library/Developer/CoreDevice/DeviceFS/…` (react-router typegen wanders into a mounted
-  device's filesystem). That's local only; `./node_modules/.bin/tsc -b` checks the types, and CI runs
-  the full script on Linux.
+- `vite.config.ts` pins `tsconfigPaths({ root: import.meta.dirname })`. Without it,
+  vite-tsconfig-paths crawls Vite's workspace root for tsconfig files, and this Mac has a
+  `pnpm-workspace.yaml` in `$HOME`, so the crawl covers the whole home directory and dies with
+  `EINVAL … scandir ~/Library/Developer/CoreDevice/DeviceFS/…` in typegen and build.
 
 ## Releasing the CLI
 

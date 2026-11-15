@@ -39,17 +39,27 @@ export function FileRow({ file }: { file: ManagedFile }) {
 
 	const remaining =
 		file.maxDownloads === null ? null : file.maxDownloads - file.downloadCount;
+	const meta = [
+		formatBytes(file.size),
+		formatAge(file.completedAt ?? 0),
+		formatExpiry(file.expiresAt),
+		file.downloadCount > 0 ? `${file.downloadCount} ↓` : null,
+		remaining !== null ? `${remaining} left` : null,
+	].filter((part): part is string => part !== null);
 
 	return (
-		<li className="bg-ink-900/40 transition hover:bg-ink-900">
+		<li className="transition hover:bg-violet-50/50">
 			<div className="flex items-center gap-3 px-4 py-3">
 				<div className="min-w-0 flex-1">
 					<p className="truncate font-medium text-sm">{file.filename}</p>
-					<p className="tnum mt-0.5 font-mono text-ink-500 text-xs">
-						{formatBytes(file.size)} · {formatAge(file.completedAt ?? 0)} ·{" "}
-						{formatExpiry(file.expiresAt)}
-						{file.downloadCount > 0 && ` · ${file.downloadCount} ↓`}
-						{remaining !== null && ` · ${remaining} left`}
+					{/* Each part is unbreakable, so a phone wraps between parts, never inside one. */}
+					<p className="tnum mt-0.5 flex flex-wrap gap-x-1.5 font-mono text-muted text-xs">
+						{meta.map((part, i) => (
+							<span key={part} className="whitespace-nowrap">
+								{part}
+								{i < meta.length - 1 && " ·"}
+							</span>
+						))}
 					</p>
 				</div>
 
@@ -60,8 +70,8 @@ export function FileRow({ file }: { file: ManagedFile }) {
 					onClick={() => setOpen((v) => !v)}
 					aria-expanded={open}
 					aria-label={`Settings for ${file.filename}`}
-					className={`rounded-lg px-2 py-1.5 text-sm transition hover:bg-ink-850 ${
-						open ? "text-accent" : "text-ink-500 hover:text-ink-200"
+					className={`rounded-full px-2 py-1.5 text-sm transition hover:bg-stone-100 ${
+						open ? "text-accent" : "text-muted hover:text-ink"
 					}`}
 				>
 					<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -74,7 +84,7 @@ export function FileRow({ file }: { file: ManagedFile }) {
 			</div>
 
 			{open && (
-				<div className="animate-rise border-ink-850 border-t bg-ink-950/40 px-4 py-4">
+				<div className="animate-rise border-line/70 border-t bg-stone-50/70 px-4 py-4">
 					<settings.Form
 						method="post"
 						action={`/app/files/${file.id}/settings`}
@@ -84,7 +94,7 @@ export function FileRow({ file }: { file: ManagedFile }) {
 							<select
 								name="expiry"
 								defaultValue=""
-								className="rounded-lg border border-ink-800 bg-ink-900 px-2.5 py-1.5 text-sm outline-none focus:border-accent"
+								className="rounded-xl border border-line bg-white px-2.5 py-1.5 text-sm outline-none focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
 							>
 								<option value="">Unchanged</option>
 								{EXPIRY_CHOICES.map((choice) => (
@@ -99,7 +109,7 @@ export function FileRow({ file }: { file: ManagedFile }) {
 							<select
 								name="downloads"
 								defaultValue=""
-								className="rounded-lg border border-ink-800 bg-ink-900 px-2.5 py-1.5 text-sm outline-none focus:border-accent"
+								className="rounded-xl border border-line bg-white px-2.5 py-1.5 text-sm outline-none focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
 							>
 								<option value="">Unchanged</option>
 								{DOWNLOAD_CHOICES.map((choice) => (
@@ -113,7 +123,7 @@ export function FileRow({ file }: { file: ManagedFile }) {
 						<button
 							type="submit"
 							disabled={settings.state !== "idle"}
-							className="rounded-lg bg-accent px-3 py-1.5 font-medium text-sm text-white transition hover:bg-accent-bright disabled:opacity-50"
+							className="shrink-0 whitespace-nowrap rounded-full bg-accent px-3 py-1.5 font-medium text-sm text-white transition shadow-soft hover:bg-accent-strong disabled:opacity-50"
 						>
 							{settings.state !== "idle" ? "Saving…" : "Save"}
 						</button>
@@ -122,7 +132,7 @@ export function FileRow({ file }: { file: ManagedFile }) {
 							<span className="text-accent text-xs">Saved</span>
 						)}
 						{settings.data?.error && (
-							<span className="text-rose-400 text-xs">{settings.data.error}</span>
+							<span className="text-rose-600 text-xs">{settings.data.error}</span>
 						)}
 
 						<div className="ml-auto">
@@ -139,7 +149,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 	return (
 		// biome-ignore lint/a11y/noLabelWithoutControl: the select is passed in as children
 		<label className="flex flex-col gap-1">
-			<span className="font-medium text-ink-500 text-xs uppercase tracking-wide">
+			<span className="font-medium text-muted text-xs uppercase tracking-wide">
 				{label}
 			</span>
 			{children}
@@ -161,7 +171,7 @@ function DeleteButton({
 			<button
 				type="button"
 				onClick={() => setConfirming(true)}
-				className="rounded-lg px-3 py-1.5 text-ink-500 text-sm transition hover:bg-rose-500/10 hover:text-rose-400"
+				className="rounded-full px-3 py-1.5 text-muted text-sm transition hover:bg-rose-50 hover:text-rose-700"
 			>
 				Delete
 			</button>
@@ -171,11 +181,11 @@ function DeleteButton({
 	return (
 		<div className="flex items-center gap-2">
 			{/* Deletion destroys the bytes immediately, so it gets one deliberate confirmation. */}
-			<span className="text-ink-400 text-xs">Delete for good?</span>
+			<span className="text-ink-soft text-xs">Delete for good?</span>
 			<button
 				type="button"
 				onClick={() => setConfirming(false)}
-				className="rounded-lg px-2 py-1 text-ink-500 text-sm hover:text-ink-200"
+				className="rounded-full px-2 py-1 text-muted text-sm hover:text-ink"
 			>
 				No
 			</button>
@@ -187,7 +197,7 @@ function DeleteButton({
 						action: `/app/files/${file.id}/delete`,
 					})
 				}
-				className="rounded-lg bg-rose-500/90 px-3 py-1.5 font-medium text-sm text-white transition hover:bg-rose-500"
+				className="rounded-full bg-rose-500 px-3 py-1.5 font-medium text-sm text-white transition hover:bg-rose-600"
 			>
 				Delete
 			</button>

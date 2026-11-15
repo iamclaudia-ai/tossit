@@ -7,6 +7,7 @@ import {
 	ScrollRestoration,
 } from "react-router";
 
+import { Signature, Wordmark } from "~/components/brand";
 import type { Route } from "./+types/root";
 import "./app.css";
 
@@ -18,10 +19,10 @@ export const links: Route.LinksFunction = () => [
 		crossOrigin: "anonymous",
 	},
 	{
-		// Familjen Grotesk for text — warm, slightly quirky terminals, not another Inter clone.
-		// DM Mono for every number, so sizes and rates sit still instead of jittering.
+		// Newsreader carries the voice (wordmark, titles, the signature); UI text is the system
+		// sans. Same font and URL as Anima, per the applying-claudia-style skill.
 		rel: "stylesheet",
-		href: "https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400..700;1,400..700&family=DM+Mono:wght@400;500&display=swap",
+		href: "https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap",
 	},
 ];
 
@@ -31,10 +32,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 			<head>
 				<meta charSet="utf-8" />
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
+				<meta name="theme-color" content="#faf9f7" />
 				<Meta />
 				<Links />
 			</head>
-			<body>
+			<body className="min-h-dvh bg-claudia text-ink">
 				{children}
 				<ScrollRestoration />
 				<Scripts />
@@ -64,14 +66,18 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
 	}
 
 	return (
-		<main className="pt-16 p-4 container mx-auto">
-			<h1>{message}</h1>
-			<p>{details}</p>
-			{stack && (
-				<pre className="w-full p-4 overflow-x-auto">
-					<code>{stack}</code>
-				</pre>
-			)}
+		<main className="flex min-h-dvh flex-col items-center justify-center px-4 py-16">
+			<div className="w-full max-w-xl text-center">
+				<Wordmark />
+				<h1 className="mt-8 font-display text-5xl text-ink tracking-tight">{message}</h1>
+				<p className="mt-3 font-display text-lg text-muted italic">{details}</p>
+				{stack && (
+					<pre className="mt-8 w-full overflow-x-auto rounded-2xl bg-stone-900 p-4 text-left text-stone-100 text-xs">
+						<code>{stack}</code>
+					</pre>
+				)}
+			</div>
+			<Signature />
 		</main>
 	);
 }

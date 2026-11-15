@@ -1,6 +1,7 @@
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { useState } from "react";
 import { data, Link, useFetcher, useRevalidator } from "react-router";
+import { AppHeader, navItem, Signature } from "~/components/brand";
 import { cloudflareContext } from "~/context";
 import { getDb } from "~/db";
 import { credentials, deviceTokens, sessions } from "~/db/schema";
@@ -144,28 +145,22 @@ export default function Settings({ loaderData, actionData }: Route.ComponentProp
 	const [error, setError] = useState<string | null>(null);
 
 	return (
-		<div className="min-h-dvh">
-			<header className="mx-auto flex max-w-3xl items-center justify-between px-6 py-5">
-				<Link to="/app" className="font-semibold text-lg tracking-tight">
-					toss<span className="text-accent">it</span>
-				</Link>
-				<Link
-					to="/app"
-					className="rounded-lg px-3 py-1.5 text-ink-400 text-sm transition hover:bg-ink-900 hover:text-ink-200"
-				>
+		<div className="flex min-h-dvh flex-col">
+			<AppHeader>
+				<Link to="/app" className={navItem}>
 					Back to files
 				</Link>
-			</header>
+			</AppHeader>
 
-			<main className="mx-auto max-w-3xl px-6 pb-24">
-				<h1 className="font-medium text-2xl tracking-tight">Settings</h1>
-				<p className="mt-1 text-ink-500 text-sm">{loaderData.email}</p>
+			<main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-8 sm:px-6">
+				<h1 className="font-display text-4xl text-ink tracking-tight">Settings</h1>
+				<p className="mt-1 text-muted text-sm">{loaderData.email}</p>
 
 				<section className="mt-8">
-					<div className="flex items-end justify-between">
+					<div className="flex items-end justify-between gap-4">
 						<div>
-							<h2 className="font-medium">Passkeys</h2>
-							<p className="mt-0.5 text-ink-500 text-sm">
+							<h2 className="font-display text-ink text-xl">Passkeys</h2>
+							<p className="mt-0.5 text-muted text-sm">
 								Add one per device. There is no password to fall back on.
 							</p>
 						</div>
@@ -185,33 +180,30 @@ export default function Settings({ loaderData, actionData }: Route.ComponentProp
 									setBusy(false);
 								}
 							}}
-							className="rounded-lg bg-accent px-3 py-1.5 font-medium text-sm text-white transition hover:bg-accent-bright disabled:opacity-50"
+							className="shrink-0 whitespace-nowrap rounded-full bg-accent px-3 py-1.5 font-medium text-sm text-white transition shadow-soft hover:bg-accent-strong disabled:opacity-50"
 						>
 							{busy ? "Waiting…" : "Add passkey"}
 						</button>
 					</div>
 
-					{error && <p className="mt-3 text-rose-400 text-sm">{error}</p>}
+					{error && <p className="mt-3 text-rose-600 text-sm">{error}</p>}
 					{actionData?.error && (
-						<p className="mt-3 text-rose-400 text-sm">{actionData.error}</p>
+						<p className="mt-3 text-rose-600 text-sm">{actionData.error}</p>
 					)}
 
-					<ul className="mt-4 divide-y divide-ink-900 overflow-hidden rounded-2xl border border-ink-900">
+					<ul className="mt-4 divide-y divide-line/60 overflow-hidden rounded-2xl border border-line/70 bg-white/70 shadow-soft backdrop-blur-sm">
 						{loaderData.passkeys.map((key) => (
-							<li
-								key={key.id}
-								className="flex items-center gap-3 bg-ink-900/40 px-4 py-3"
-							>
+							<li key={key.id} className="flex items-center gap-3 px-4 py-3">
 								<div className="min-w-0 flex-1">
 									<p className="truncate font-medium text-sm">
 										{key.nickname ?? "Passkey"}
 										{key.backedUp && (
-											<span className="ml-2 rounded bg-ink-850 px-1.5 py-0.5 font-normal text-ink-400 text-xs">
+											<span className="ml-2 rounded-full border border-violet-200/70 bg-violet-50 px-2 py-0.5 font-normal text-violet-700 text-xs">
 												synced
 											</span>
 										)}
 									</p>
-									<p className="tnum mt-0.5 font-mono text-ink-500 text-xs">
+									<p className="tnum mt-0.5 font-mono text-muted text-xs">
 										added {formatAge(key.createdAt)}
 										{key.lastUsedAt && ` · last used ${formatAge(key.lastUsedAt)}`}
 									</p>
@@ -228,20 +220,17 @@ export default function Settings({ loaderData, actionData }: Route.ComponentProp
 				</section>
 
 				<section className="mt-10">
-					<h2 className="font-medium">Active sessions</h2>
-					<p className="mt-0.5 text-ink-500 text-sm">
+					<h2 className="font-display text-ink text-xl">Active sessions</h2>
+					<p className="mt-0.5 text-muted text-sm">
 						Revoking a session signs that browser out immediately.
 					</p>
 
-					<ul className="mt-4 divide-y divide-ink-900 overflow-hidden rounded-2xl border border-ink-900">
+					<ul className="mt-4 divide-y divide-line/60 overflow-hidden rounded-2xl border border-line/70 bg-white/70 shadow-soft backdrop-blur-sm">
 						{loaderData.sessions.map((session) => (
-							<li
-								key={session.id}
-								className="flex items-center gap-3 bg-ink-900/40 px-4 py-3"
-							>
+							<li key={session.id} className="flex items-center gap-3 px-4 py-3">
 								<div className="min-w-0 flex-1">
 									<p className="truncate text-sm">{describeAgent(session.userAgent)}</p>
-									<p className="tnum mt-0.5 font-mono text-ink-500 text-xs">
+									<p className="tnum mt-0.5 font-mono text-muted text-xs">
 										started {formatAge(session.createdAt)}
 									</p>
 								</div>
@@ -257,31 +246,28 @@ export default function Settings({ loaderData, actionData }: Route.ComponentProp
 				</section>
 
 				<section className="mt-10">
-					<h2 className="font-medium">Command line</h2>
-					<p className="mt-0.5 text-ink-500 text-sm">
-						Terminals linked with <code className="text-ink-400">tossit login</code>.
+					<h2 className="font-display text-ink text-xl">Command line</h2>
+					<p className="mt-0.5 text-muted text-sm">
+						Terminals linked with <code className="text-ink-soft">tossit login</code>.
 						Revoking one signs that machine out immediately.
 					</p>
 
 					{loaderData.deviceTokens.length === 0 ? (
-						<div className="mt-4 rounded-2xl border border-ink-900 border-dashed px-4 py-6 text-center">
-							<p className="text-ink-500 text-sm">No terminals linked yet.</p>
-							<p className="mt-1 font-mono text-ink-700 text-xs">
+						<div className="mt-4 rounded-2xl border border-line/70 border-dashed bg-white/40 px-4 py-6 text-center">
+							<p className="text-muted text-sm">No terminals linked yet.</p>
+							<p className="mt-1 font-mono text-muted text-xs">
 								npx @iamclaudia/tossit login
 							</p>
 						</div>
 					) : (
-						<ul className="mt-4 divide-y divide-ink-900 overflow-hidden rounded-2xl border border-ink-900">
+						<ul className="mt-4 divide-y divide-line/60 overflow-hidden rounded-2xl border border-line/70 bg-white/70 shadow-soft backdrop-blur-sm">
 							{loaderData.deviceTokens.map((token) => (
-								<li
-									key={token.id}
-									className="flex items-center gap-3 bg-ink-900/40 px-4 py-3"
-								>
+								<li key={token.id} className="flex items-center gap-3 px-4 py-3">
 									<div className="min-w-0 flex-1">
 										<p className="truncate font-medium text-sm">
 											{token.label ?? "Terminal"}
 										</p>
-										<p className="tnum mt-0.5 font-mono text-ink-500 text-xs">
+										<p className="tnum mt-0.5 font-mono text-muted text-xs">
 											linked {formatAge(token.createdAt)}
 											{token.lastUsedAt
 												? ` · last used ${formatAge(token.lastUsedAt)}`
@@ -301,13 +287,14 @@ export default function Settings({ loaderData, actionData }: Route.ComponentProp
 				</section>
 
 				<section className="mt-10">
-					<h2 className="font-medium">Maintenance</h2>
-					<p className="mt-0.5 text-ink-500 text-sm">
+					<h2 className="font-display text-ink text-xl">Maintenance</h2>
+					<p className="mt-0.5 text-muted text-sm">
 						Runs nightly on its own. This is the same job, on demand.
 					</p>
 					<CleanupButton />
 				</section>
 			</main>
+			<Signature />
 		</div>
 	);
 }
@@ -318,9 +305,9 @@ function CleanupButton() {
 	const report = fetcher.data?.report;
 
 	return (
-		<div className="mt-4 rounded-2xl border border-ink-900 bg-ink-900/40 px-4 py-3">
+		<div className="mt-4 rounded-2xl border border-line/70 bg-white/70 shadow-soft backdrop-blur-sm px-4 py-3">
 			<div className="flex items-center gap-3">
-				<p className="flex-1 text-ink-400 text-sm">
+				<p className="flex-1 text-ink-soft text-sm">
 					Purge expired files, abandoned uploads, and dead sessions.
 				</p>
 				<button
@@ -332,14 +319,14 @@ function CleanupButton() {
 							{ method: "post", action: "/app/settings" },
 						)
 					}
-					className="rounded-lg bg-ink-850 px-3 py-1.5 font-medium text-sm transition hover:bg-ink-800 disabled:opacity-50"
+					className="whitespace-nowrap rounded-full bg-violet-50 px-3 py-1.5 font-medium text-sm text-violet-700 transition hover:bg-violet-100 disabled:opacity-50"
 				>
 					{fetcher.state !== "idle" ? "Running…" : "Run now"}
 				</button>
 			</div>
 
 			{report && (
-				<p className="tnum mt-3 font-mono text-ink-500 text-xs">
+				<p className="tnum mt-3 font-mono text-muted text-xs">
 					{Object.entries(report)
 						.filter(([key]) => key !== "errors")
 						.map(([key, value]) => `${key}: ${value}`)
@@ -365,7 +352,7 @@ function RowAction({
 	const [confirming, setConfirming] = useState(false);
 
 	if (fetcher.state !== "idle") {
-		return <span className="text-ink-500 text-sm">Working…</span>;
+		return <span className="text-muted text-sm">Working…</span>;
 	}
 
 	if (!confirming) {
@@ -373,7 +360,7 @@ function RowAction({
 			<button
 				type="button"
 				onClick={() => setConfirming(true)}
-				className="rounded-lg px-3 py-1.5 text-ink-500 text-sm transition hover:bg-rose-500/10 hover:text-rose-400"
+				className="rounded-full px-3 py-1.5 text-muted text-sm transition hover:bg-rose-50 hover:text-rose-700"
 			>
 				{label}
 			</button>
@@ -382,11 +369,11 @@ function RowAction({
 
 	return (
 		<div className="flex items-center gap-2">
-			<span className="text-ink-400 text-xs">{confirm}</span>
+			<span className="text-ink-soft text-xs">{confirm}</span>
 			<button
 				type="button"
 				onClick={() => setConfirming(false)}
-				className="rounded-lg px-2 py-1 text-ink-500 text-sm hover:text-ink-200"
+				className="rounded-full px-2 py-1 text-muted text-sm hover:text-ink"
 			>
 				No
 			</button>
@@ -395,7 +382,7 @@ function RowAction({
 				onClick={() =>
 					fetcher.submit({ intent, id }, { method: "post", action: "/app/settings" })
 				}
-				className="rounded-lg bg-rose-500/90 px-3 py-1.5 font-medium text-sm text-white transition hover:bg-rose-500"
+				className="rounded-full bg-rose-500 px-3 py-1.5 font-medium text-sm text-white transition hover:bg-rose-600"
 			>
 				{label}
 			</button>

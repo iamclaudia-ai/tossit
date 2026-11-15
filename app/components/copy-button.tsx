@@ -25,8 +25,10 @@ export function CopyButton({
 				await copyText(value);
 				setCopied(true);
 			}}
-			className={`rounded-lg px-3 py-1.5 font-medium text-sm transition ${
-				copied ? "bg-accent text-white" : "bg-ink-850 text-ink-200 hover:bg-ink-800"
+			className={`whitespace-nowrap rounded-full px-3 py-1.5 font-medium text-sm transition ${
+				copied
+					? "bg-accent text-white"
+					: "bg-violet-50 text-violet-700 hover:bg-violet-100"
 			} ${className}`}
 		>
 			{copied ? "Copied" : label}

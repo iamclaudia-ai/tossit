@@ -1,4 +1,5 @@
 import { data, Form, Link, useSearchParams } from "react-router";
+import { Signature, Wordmark } from "~/components/brand";
 import { cloudflareContext } from "~/context";
 import { requireUser } from "~/lib/auth";
 import { approveDeviceAuth, findPendingAuth } from "~/lib/device.server";
@@ -43,7 +44,7 @@ export default function LinkDevice({ actionData }: Route.ComponentProps) {
 		return (
 			<Shell>
 				<div className="text-center">
-					<div className="mx-auto flex size-11 items-center justify-center rounded-full bg-accent/15">
+					<div className="mx-auto flex size-11 items-center justify-center rounded-full bg-accent-soft">
 						<svg
 							width="22"
 							height="22"
@@ -54,20 +55,22 @@ export default function LinkDevice({ actionData }: Route.ComponentProps) {
 							<title>Linked</title>
 							<path
 								d="m5 12.5 4.5 4.5L19 7.5"
-								stroke="oklch(0.76 0.17 300)"
+								stroke="var(--color-violet-600)"
 								strokeWidth="2.2"
 								strokeLinecap="round"
 								strokeLinejoin="round"
 							/>
 						</svg>
 					</div>
-					<h1 className="mt-4 font-medium text-lg">Device linked</h1>
-					<p className="mt-1 text-ink-500 text-sm">
+					<h1 className="mt-4 font-display text-2xl text-ink tracking-tight">
+						Device linked
+					</h1>
+					<p className="mt-1 text-muted text-sm">
 						Your terminal is signed in. You can close this tab.
 					</p>
 					<Link
 						to="/app/settings"
-						className="mt-6 inline-block text-accent text-sm hover:text-accent-bright"
+						className="mt-6 inline-block text-accent text-sm hover:text-accent-strong"
 					>
 						Manage device tokens
 					</Link>
@@ -78,8 +81,8 @@ export default function LinkDevice({ actionData }: Route.ComponentProps) {
 
 	return (
 		<Shell>
-			<h1 className="font-medium text-lg tracking-tight">Link a device</h1>
-			<p className="mt-1 text-ink-500 text-sm">Enter the code shown in your terminal.</p>
+			<h1 className="font-display text-2xl text-ink tracking-tight">Link a device</h1>
+			<p className="mt-1 text-muted text-sm">Enter the code shown in your terminal.</p>
 
 			<Form method="post" className="mt-6">
 				<input
@@ -92,23 +95,23 @@ export default function LinkDevice({ actionData }: Route.ComponentProps) {
 					spellCheck={false}
 					placeholder="XXXX-XXXX"
 					maxLength={9}
-					className="tnum w-full rounded-xl border border-ink-800 bg-ink-950 px-4 py-3 text-center font-mono text-2xl uppercase tracking-[0.2em] outline-none focus:border-accent"
+					className="tnum w-full rounded-xl border border-line bg-white/80 px-4 py-3 text-center font-mono text-2xl uppercase tracking-[0.2em] outline-none focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
 				/>
 				<button
 					type="submit"
-					className="mt-4 w-full rounded-xl bg-accent px-5 py-3 font-medium text-white transition hover:bg-accent-bright"
+					className="mt-4 w-full rounded-full bg-accent px-5 py-3 font-medium text-white transition shadow-soft hover:bg-accent-strong"
 				>
 					Approve
 				</button>
 			</Form>
 
 			{actionData?.error && (
-				<p className="mt-4 text-rose-400 text-sm" role="alert">
+				<p className="mt-4 text-rose-600 text-sm" role="alert">
 					{actionData.error}
 				</p>
 			)}
 
-			<p className="mt-6 text-ink-700 text-xs leading-relaxed">
+			<p className="mt-6 text-muted text-xs leading-relaxed">
 				Only approve a code you just generated yourself. It grants that terminal the
 				ability to upload and manage files as you, until you revoke it in Settings.
 			</p>
@@ -118,15 +121,16 @@ export default function LinkDevice({ actionData }: Route.ComponentProps) {
 
 function Shell({ children }: { children: React.ReactNode }) {
 	return (
-		<main className="flex min-h-dvh flex-col items-center justify-center px-6">
-			<div className="w-full max-w-sm">
-				<p className="text-center font-semibold text-ink-500 text-sm tracking-tight">
-					toss<span className="text-accent">it</span>
+		<main className="flex min-h-dvh flex-col items-center px-4">
+			<div className="flex w-full max-w-sm flex-1 flex-col justify-center py-16">
+				<p className="text-center">
+					<Wordmark />
 				</p>
-				<div className="mt-6 rounded-2xl border border-ink-850 bg-ink-900/60 p-8">
+				<div className="mt-6 rounded-2xl border border-line/70 bg-white/70 shadow-soft backdrop-blur-sm p-8">
 					{children}
 				</div>
 			</div>
+			<Signature />
 		</main>
 	);
 }

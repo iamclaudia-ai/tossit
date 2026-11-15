@@ -1,6 +1,7 @@
 import { asc, eq, sql } from "drizzle-orm";
 import { useState } from "react";
 import { data, Link, useFetcher } from "react-router";
+import { AppHeader, navItem, Signature } from "~/components/brand";
 import { cloudflareContext } from "~/context";
 import { getDb } from "~/db";
 import { credentials, files, sessions, users } from "~/db/schema";
@@ -89,39 +90,33 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 const ROLE_STYLES: Record<string, string> = {
-	owner: "bg-accent/15 text-accent",
-	admin: "bg-ink-850 text-ink-200",
-	member: "bg-ink-850 text-ink-400",
+	owner: "border-violet-200/70 bg-violet-50 text-violet-700",
+	admin: "border-rose-200/70 bg-rose-50 text-rose-700",
+	member: "border-stone-200 bg-stone-50 text-ink-soft",
 };
 
 export default function People({ loaderData, actionData }: Route.ComponentProps) {
 	return (
-		<div className="min-h-dvh">
-			<header className="mx-auto flex max-w-3xl items-center justify-between px-6 py-5">
-				<Link to="/app" className="font-semibold text-lg tracking-tight">
-					toss<span className="text-accent">it</span>
-				</Link>
-				<Link
-					to="/app"
-					className="rounded-lg px-3 py-1.5 text-ink-400 text-sm transition hover:bg-ink-900 hover:text-ink-200"
-				>
+		<div className="flex min-h-dvh flex-col">
+			<AppHeader>
+				<Link to="/app" className={navItem}>
 					Back to files
 				</Link>
-			</header>
+			</AppHeader>
 
-			<main className="mx-auto max-w-3xl px-6 pb-24">
-				<h1 className="font-medium text-2xl tracking-tight">People</h1>
-				<p className="mt-1 text-ink-500 text-sm">
+			<main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-8 sm:px-6">
+				<h1 className="font-display text-4xl text-ink tracking-tight">People</h1>
+				<p className="mt-1 text-muted text-sm">
 					Admins can do everything you can, except change the owner.
 				</p>
 
 				{actionData?.error && (
-					<p className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-2.5 text-rose-400 text-sm">
+					<p className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-rose-600 text-sm">
 						{actionData.error}
 					</p>
 				)}
 
-				<ul className="mt-6 divide-y divide-ink-900 overflow-hidden rounded-2xl border border-ink-900">
+				<ul className="mt-6 divide-y divide-line/60 overflow-hidden rounded-2xl border border-line/70 bg-white/70 shadow-soft backdrop-blur-sm">
 					{loaderData.people.map((person) => (
 						<PersonRow
 							key={person.id}
@@ -131,11 +126,12 @@ export default function People({ loaderData, actionData }: Route.ComponentProps)
 					))}
 				</ul>
 
-				<p className="mt-4 text-ink-700 text-xs">
+				<p className="mt-4 text-muted text-xs">
 					Removing someone deletes their account, passkeys, and sessions. Files they
 					uploaded are kept and become visible to admins.
 				</p>
 			</main>
+			<Signature />
 		</div>
 	);
 }
@@ -156,13 +152,13 @@ function PersonRow({ person, isMe }: { person: Person; isMe: boolean }) {
 		);
 
 	return (
-		<li className="flex flex-wrap items-center gap-3 bg-ink-900/40 px-4 py-3">
+		<li className="flex flex-wrap items-center gap-3 px-4 py-3">
 			<div className="min-w-0 flex-1">
 				<p className="truncate font-medium text-sm">
 					{person.email}
-					{isMe && <span className="ml-2 text-ink-600 text-xs">you</span>}
+					{isMe && <span className="ml-2 text-muted text-xs">you</span>}
 				</p>
-				<p className="tnum mt-0.5 font-mono text-ink-500 text-xs">
+				<p className="tnum mt-0.5 font-mono text-muted text-xs">
 					joined {formatAge(person.createdAt)} · {person.fileCount} file
 					{person.fileCount === 1 ? "" : "s"} · {person.passkeyCount} passkey
 					{person.passkeyCount === 1 ? "" : "s"}
@@ -170,7 +166,7 @@ function PersonRow({ person, isMe }: { person: Person; isMe: boolean }) {
 			</div>
 
 			<span
-				className={`rounded px-2 py-0.5 font-medium text-xs ${ROLE_STYLES[person.role]}`}
+				className={`rounded-full border px-2.5 py-0.5 font-medium text-xs ${ROLE_STYLES[person.role]}`}
 			>
 				{person.role}
 			</span>
@@ -181,7 +177,7 @@ function PersonRow({ person, isMe }: { person: Person; isMe: boolean }) {
 						defaultValue={person.role}
 						disabled={fetcher.state !== "idle"}
 						onChange={(event) => submit({ intent: "set-role", role: event.target.value })}
-						className="rounded-lg border border-ink-800 bg-ink-900 px-2 py-1.5 text-sm outline-none focus:border-accent disabled:opacity-50"
+						className="rounded-xl border border-line bg-white px-2 py-1.5 text-sm outline-none focus:border-violet-300 focus:ring-4 focus:ring-violet-100 disabled:opacity-50"
 					>
 						<option value="member">member</option>
 						<option value="admin">admin</option>
@@ -189,18 +185,18 @@ function PersonRow({ person, isMe }: { person: Person; isMe: boolean }) {
 
 					{confirming ? (
 						<span className="flex items-center gap-2">
-							<span className="text-ink-400 text-xs">Remove {person.email}?</span>
+							<span className="text-ink-soft text-xs">Remove {person.email}?</span>
 							<button
 								type="button"
 								onClick={() => setConfirming(false)}
-								className="rounded-lg px-2 py-1 text-ink-500 text-sm hover:text-ink-200"
+								className="rounded-full px-2 py-1 text-muted text-sm hover:text-ink"
 							>
 								No
 							</button>
 							<button
 								type="button"
 								onClick={() => submit({ intent: "remove-user" })}
-								className="rounded-lg bg-rose-500/90 px-3 py-1.5 font-medium text-sm text-white transition hover:bg-rose-500"
+								className="rounded-full bg-rose-500 px-3 py-1.5 font-medium text-sm text-white transition hover:bg-rose-600"
 							>
 								Remove
 							</button>
@@ -209,7 +205,7 @@ function PersonRow({ person, isMe }: { person: Person; isMe: boolean }) {
 						<button
 							type="button"
 							onClick={() => setConfirming(true)}
-							className="rounded-lg px-3 py-1.5 text-ink-500 text-sm transition hover:bg-rose-500/10 hover:text-rose-400"
+							className="rounded-full px-3 py-1.5 text-muted text-sm transition hover:bg-rose-50 hover:text-rose-700"
 						>
 							Remove
 						</button>

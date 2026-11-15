@@ -1,0 +1,174 @@
+/*
+ * Claudia's look: a Tailwind v4 drop-in.
+ *
+ * Sourced from Anima's live UI (packages/gateway/src/web/HomePage.tsx,
+ * packages/ui/src/styles/index.css, the memory pages and the chat chrome).
+ * Copy this file into a project (e.g. app/claudia.css) and import it right
+ * after Tailwind:
+ *
+ *   @import "tailwindcss";
+ *   @import "./claudia.css";
+ *
+ * Load Newsreader from Google Fonts in the document head (see SKILL.md).
+ * Everything else uses Tailwind's own stone / violet / rose / amber palettes,
+ * so the semantic tokens below are aliases, not new colors.
+ */
+
+@theme {
+  /* Type: Newsreader for anything with a voice (titles, ledes, the
+     signature), the system sans for UI, SF Mono for code. */
+  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "SF Mono", ui-monospace, Monaco, "Courier New", monospace;
+
+  /* Surfaces: warm cream page, white paper on top of it. */
+  --color-cream: #faf9f7;
+  --color-paper: #ffffff;
+
+  /* Ink: warm stone, never Tailwind's cool gray. */
+  --color-ink: var(--color-stone-800);
+  --color-ink-soft: var(--color-stone-600);
+  --color-muted: var(--color-stone-500);
+  --color-faint: var(--color-stone-400); /* eyebrows and meta only: fails AA for body text */
+  --color-line: var(--color-stone-200);
+
+  /* Accent: violet carries the brand, rose is the heart, amber is "busy". */
+  --color-accent: var(--color-violet-600);
+  --color-accent-strong: var(--color-violet-700);
+  --color-accent-soft: var(--color-violet-100);
+  --color-accent-wash: var(--color-violet-50);
+  --color-blush: var(--color-rose-400);
+  --color-blush-soft: var(--color-rose-100);
+  --color-honey: var(--color-amber-400);
+  --color-danger: var(--color-rose-600);
+  --color-success: var(--color-emerald-600);
+
+  /* The two shadows Anima's tiles use: resting and lifted. */
+  --shadow-soft: 0 4px 20px -8px rgb(0 0 0 / 0.08);
+  --shadow-lift: 0 10px 30px -10px rgb(0 0 0 / 0.18);
+
+  /* Reskin gray -> stone everywhere, as Anima does, so a stray gray-* class
+     still comes out warm. */
+  --color-gray-50: var(--color-stone-50);
+  --color-gray-100: var(--color-stone-100);
+  --color-gray-200: var(--color-stone-200);
+  --color-gray-300: var(--color-stone-300);
+  --color-gray-400: var(--color-stone-400);
+  --color-gray-500: var(--color-stone-500);
+  --color-gray-600: var(--color-stone-600);
+  --color-gray-700: var(--color-stone-700);
+  --color-gray-800: var(--color-stone-800);
+  --color-gray-900: var(--color-stone-900);
+  --color-gray-950: var(--color-stone-950);
+}
+
+/*
+ * The page background: cream, a violet wash falling from the top, a rose
+ * bloom in the bottom-right corner and a hint of sky on the left. One class
+ * on <body> (or the page shell) replaces Anima's three absolutely positioned
+ * blur divs.
+ */
+@utility bg-claudia {
+  background-color: var(--color-cream);
+  background-image:
+    linear-gradient(to bottom, var(--wash-top), var(--wash-top-fade) 12rem, transparent 24rem),
+    radial-gradient(32rem 32rem at 100% 100%, var(--wash-bloom), transparent 70%),
+    radial-gradient(24rem 24rem at 0% 14rem, var(--wash-sky), transparent 70%);
+  background-repeat: no-repeat;
+}
+
+/* The signature gradient: violet into rose. Progress bars, a hairline under a
+   title, at most one hero button per page. */
+@utility bg-signature {
+  background-image: linear-gradient(to right, var(--color-violet-500), var(--color-rose-400));
+}
+
+@layer base {
+  /* The wash colors behind bg-claudia, as variables so dusk can retint them. */
+  :root {
+    --wash-top: color-mix(in oklab, var(--color-violet-100) 60%, transparent);
+    --wash-top-fade: color-mix(in oklab, var(--color-violet-50) 30%, transparent);
+    --wash-bloom: color-mix(in oklab, var(--color-rose-100) 55%, transparent);
+    --wash-sky: color-mix(in oklab, var(--color-sky-100) 45%, transparent);
+  }
+
+  /* Light by design, like Anima. Without this, a system dark mode paints
+     scrollbars, form controls and any transparent surface dark. A project that
+     wants the dusk variant sets data-theme="dusk" on <html> (below). */
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-cream);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--color-violet-200);
+    color: var(--color-violet-900);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-violet-400);
+    outline-offset: 2px;
+  }
+
+  a {
+    color: var(--color-accent);
+    text-underline-offset: 3px;
+  }
+
+  /* Inline code: Anima's pink chip. */
+  :not(pre) > code {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    background: var(--color-pink-50);
+    color: var(--color-pink-600);
+    padding: 0.125rem 0.3rem;
+    border-radius: 0.25rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/*
+ * Dusk: the opt-in dark variant, for surfaces that live in the dark
+ * (a presenter screen, a terminal companion). Plum-tinted night instead of
+ * cream; the accents step up to their light shades. Semantic tokens switch
+ * here, so only components built on them (text-ink, bg-paper, border-line,
+ * text-accent...) follow. Raw stone-* classes stay light.
+ *
+ * To follow the system setting instead of an attribute, wrap the same block
+ * in @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { ... } }.
+ */
+[data-theme="dusk"] {
+  color-scheme: dark;
+  --color-cream: #1b1722;
+  --color-paper: #241f2c;
+  --color-ink: var(--color-stone-100);
+  --color-ink-soft: var(--color-stone-300);
+  --color-muted: var(--color-stone-400);
+  --color-faint: var(--color-stone-500);
+  --color-line: rgb(255 255 255 / 0.09);
+  --color-accent: var(--color-violet-300);
+  --color-accent-strong: var(--color-violet-200);
+  --color-accent-soft: rgb(139 92 246 / 0.18);
+  --color-accent-wash: rgb(139 92 246 / 0.08);
+  --color-blush: var(--color-rose-300);
+  --color-blush-soft: rgb(251 113 133 / 0.15);
+  --wash-top: rgb(139 92 246 / 0.16);
+  --wash-top-fade: rgb(139 92 246 / 0.06);
+  --wash-bloom: rgb(244 63 94 / 0.1);
+  --wash-sky: rgb(56 189 248 / 0.06);
+}

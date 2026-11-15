@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { data, useNavigate } from "react-router";
+import { Signature, Wordmark } from "~/components/brand";
 import { Dropzone } from "~/components/dropzone";
 import { cloudflareContext } from "~/context";
 import { useUploads } from "~/hooks/use-uploads";
@@ -51,10 +52,10 @@ export default function InvitePage({ loaderData, params }: Route.ComponentProps)
 	}
 
 	return (
-		<main className="flex min-h-dvh flex-col items-center justify-center px-6 py-16">
-			<div className="w-full max-w-md">
-				<p className="text-center font-semibold text-ink-500 text-sm tracking-tight">
-					toss<span className="text-accent">it</span>
+		<main className="flex min-h-dvh flex-col items-center px-4">
+			<div className="flex w-full max-w-md flex-1 flex-col justify-center py-16">
+				<p className="text-center">
+					<Wordmark />
 				</p>
 
 				{loaderData.invite.kind === "upload" ? (
@@ -63,6 +64,7 @@ export default function InvitePage({ loaderData, params }: Route.ComponentProps)
 					<AccountInvite code={params.code} invite={loaderData.invite} />
 				)}
 			</div>
+			<Signature />
 		</main>
 	);
 }
@@ -87,22 +89,24 @@ function UploadInvite({ code, invite }: { code: string; invite: InviteInfo }) {
 
 	if (sent) {
 		return (
-			<div className="mt-6 rounded-2xl border border-ink-850 bg-ink-900/60 p-8 text-center">
-				<div className="mx-auto flex size-11 items-center justify-center rounded-full bg-accent/15">
+			<div className="mt-6 rounded-2xl border border-line/70 bg-white/70 shadow-soft backdrop-blur-sm p-8 text-center">
+				<div className="mx-auto flex size-11 items-center justify-center rounded-full bg-accent-soft">
 					<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 						<title>Sent</title>
 						<path
 							d="m5 12.5 4.5 4.5L19 7.5"
-							stroke="oklch(0.76 0.17 300)"
+							stroke="var(--color-violet-600)"
 							strokeWidth="2.2"
 							strokeLinecap="round"
 							strokeLinejoin="round"
 						/>
 					</svg>
 				</div>
-				<h1 className="mt-4 font-medium text-lg">Sent — thank you</h1>
-				<p className="mt-1 break-all text-ink-500 text-sm">{sent.filename}</p>
-				<p className="mt-4 text-ink-700 text-xs">
+				<h1 className="mt-4 font-display text-2xl text-ink tracking-tight">
+					Sent — thank you
+				</h1>
+				<p className="mt-1 break-all text-muted text-sm">{sent.filename}</p>
+				<p className="mt-4 text-muted text-xs">
 					This upload link has now been used and won't work again.
 				</p>
 			</div>
@@ -111,10 +115,10 @@ function UploadInvite({ code, invite }: { code: string; invite: InviteInfo }) {
 
 	return (
 		<div className="mt-6">
-			<h1 className="text-center font-medium text-lg tracking-tight">
+			<h1 className="text-center font-display text-2xl text-ink tracking-tight">
 				{invite.label ? `Send a file — ${invite.label}` : "Send a file"}
 			</h1>
-			<p className="mt-1 text-center text-ink-500 text-sm">
+			<p className="mt-1 text-center text-muted text-sm">
 				This is a private, one-time upload link. Nothing to sign up for.
 			</p>
 
@@ -123,29 +127,29 @@ function UploadInvite({ code, invite }: { code: string; invite: InviteInfo }) {
 			</div>
 
 			{active && (
-				<div className="animate-rise mt-4 overflow-hidden rounded-xl border border-ink-850 bg-ink-900/60 px-4 py-3">
+				<div className="animate-rise mt-4 overflow-hidden rounded-xl border border-line/70 bg-white/70 shadow-soft backdrop-blur-sm px-4 py-3">
 					<div className="flex items-center gap-3">
 						<div className="min-w-0 flex-1">
 							<p className="truncate font-medium text-sm">{active.file.name}</p>
-							<p className="tnum mt-0.5 font-mono text-ink-500 text-xs">
+							<p className="tnum mt-0.5 font-mono text-muted text-xs">
 								{formatBytes(active.progress?.loaded ?? 0)} /{" "}
 								{formatBytes(active.file.size)}
 							</p>
 						</div>
-						<span className="tnum font-mono text-ink-400 text-sm">
+						<span className="tnum font-mono text-ink-soft text-sm">
 							{Math.round((active.progress?.fraction ?? 0) * 100)}%
 						</span>
 						<button
 							type="button"
 							onClick={() => cancel(active.key)}
-							className="rounded-lg px-2 py-1 text-ink-500 text-sm hover:text-ink-200"
+							className="rounded-full px-2 py-1 text-muted text-sm hover:text-ink"
 						>
 							Cancel
 						</button>
 					</div>
-					<div className="mt-2 h-0.5 bg-ink-850">
+					<div className="mt-2 h-1 overflow-hidden rounded-full bg-violet-100/70">
 						<div
-							className="h-full bg-accent transition-[width] duration-200"
+							className="h-full bg-signature transition-[width] duration-200"
 							style={{ width: `${Math.round((active.progress?.fraction ?? 0) * 100)}%` }}
 						/>
 					</div>
@@ -153,7 +157,7 @@ function UploadInvite({ code, invite }: { code: string; invite: InviteInfo }) {
 			)}
 
 			{items.some((item) => item.status === "error") && (
-				<p className="mt-3 text-center text-rose-400 text-sm">
+				<p className="mt-3 text-center text-rose-600 text-sm">
 					{items.find((item) => item.status === "error")?.error}
 				</p>
 			)}
@@ -196,11 +200,11 @@ function AccountInvite({ code, invite }: { code: string; invite: InviteInfo }) {
 	};
 
 	return (
-		<div className="mt-6 rounded-2xl border border-ink-850 bg-ink-900/60 p-8">
-			<h1 className="font-medium text-lg tracking-tight">
+		<div className="mt-6 rounded-2xl border border-line/70 bg-white/70 shadow-soft backdrop-blur-sm p-8">
+			<h1 className="font-display text-2xl text-ink tracking-tight">
 				{invite.label ? `You're invited — ${invite.label}` : "You're invited to tossit"}
 			</h1>
-			<p className="mt-1 text-ink-500 text-sm">
+			<p className="mt-1 text-muted text-sm">
 				{step === "email" && "First, confirm your email address."}
 				{step === "otp" && `Enter the 6-digit code sent to ${email}.`}
 				{step === "passkey" && "Last step — create a passkey to sign in from now on."}
@@ -226,7 +230,7 @@ function AccountInvite({ code, invite }: { code: string; invite: InviteInfo }) {
 						// server-side anyway, so let the field say so up front.
 						readOnly={Boolean(invite.email)}
 						placeholder="you@example.com"
-						className="w-full rounded-xl border border-ink-800 bg-ink-950 px-4 py-3 outline-none read-only:text-ink-400 focus:border-accent"
+						className="w-full rounded-xl border border-line bg-white/80 px-4 py-3 outline-none read-only:text-ink-soft focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
 					/>
 					<Submit busy={busy} label="Send me a code" />
 				</form>
@@ -251,7 +255,7 @@ function AccountInvite({ code, invite }: { code: string; invite: InviteInfo }) {
 						value={otp}
 						onChange={(event) => setOtp(event.target.value.replace(/\D/g, ""))}
 						placeholder="000000"
-						className="tnum w-full rounded-xl border border-ink-800 bg-ink-950 px-4 py-3 text-center font-mono text-2xl tracking-[0.3em] outline-none focus:border-accent"
+						className="tnum w-full rounded-xl border border-line bg-white/80 px-4 py-3 text-center font-mono text-2xl tracking-[0.3em] outline-none focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
 					/>
 					<Submit busy={busy} label="Verify" />
 					<button
@@ -259,7 +263,7 @@ function AccountInvite({ code, invite }: { code: string; invite: InviteInfo }) {
 						onClick={() =>
 							run(async () => void (await post("/auth/otp/request", { code, email })))
 						}
-						className="mt-3 w-full text-ink-500 text-xs hover:text-ink-200"
+						className="mt-3 w-full text-muted text-xs hover:text-ink"
 					>
 						Send a new code
 					</button>
@@ -277,18 +281,18 @@ function AccountInvite({ code, invite }: { code: string; invite: InviteInfo }) {
 								navigate("/app");
 							})
 						}
-						className="w-full rounded-xl bg-accent px-5 py-3 font-medium text-white transition hover:bg-accent-bright disabled:opacity-50"
+						className="w-full rounded-full bg-accent px-5 py-3 font-medium text-white transition shadow-soft hover:bg-accent-strong disabled:opacity-50"
 					>
 						{busy ? "Waiting for your device…" : "Create passkey"}
 					</button>
-					<p className="mt-3 text-center text-ink-700 text-xs">
+					<p className="mt-3 text-center text-muted text-xs">
 						No password. Your device or password manager holds the key.
 					</p>
 				</div>
 			)}
 
 			{error && (
-				<p className="mt-4 text-rose-400 text-sm" role="alert">
+				<p className="mt-4 text-rose-600 text-sm" role="alert">
 					{error}
 				</p>
 			)}
@@ -301,7 +305,7 @@ function Submit({ busy, label }: { busy: boolean; label: string }) {
 		<button
 			type="submit"
 			disabled={busy}
-			className="mt-4 w-full rounded-xl bg-accent px-5 py-3 font-medium text-white transition hover:bg-accent-bright disabled:opacity-50"
+			className="mt-4 w-full rounded-full bg-accent px-5 py-3 font-medium text-white transition shadow-soft hover:bg-accent-strong disabled:opacity-50"
 		>
 			{busy ? "Working…" : label}
 		</button>
@@ -317,18 +321,19 @@ const MESSAGES: Record<InviteRejection, string> = {
 
 function Unavailable({ reason }: { reason: InviteRejection }) {
 	return (
-		<main className="flex min-h-dvh flex-col items-center justify-center px-6">
-			<div className="w-full max-w-sm text-center">
-				<p className="font-semibold text-ink-500 text-sm tracking-tight">
-					toss<span className="text-accent">it</span>
+		<main className="flex min-h-dvh flex-col items-center px-4">
+			<div className="flex w-full max-w-sm flex-1 flex-col justify-center py-16 text-center">
+				<p className="text-center">
+					<Wordmark />
 				</p>
-				<h1 className="mt-6 font-medium text-xl tracking-tight">
+				<h1 className="mt-6 font-display text-2xl text-ink tracking-tight">
 					Invitation unavailable
 				</h1>
-				<p className="mt-2 text-balance text-ink-500 text-sm leading-relaxed">
+				<p className="mt-2 text-balance text-muted text-sm leading-relaxed">
 					{MESSAGES[reason] ?? MESSAGES.missing}
 				</p>
 			</div>
+			<Signature />
 		</main>
 	);
 }

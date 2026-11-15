@@ -12,6 +12,7 @@ export interface ManagedFile {
 	expiresAt: number | null;
 	maxDownloads: number | null;
 	downloadCount: number;
+	viewCount: number;
 }
 
 const EXPIRY_CHOICES = [
@@ -43,6 +44,7 @@ export function FileRow({ file }: { file: ManagedFile }) {
 		formatBytes(file.size),
 		formatAge(file.completedAt ?? 0),
 		formatExpiry(file.expiresAt),
+		file.viewCount > 0 ? `${file.viewCount} ▷` : null,
 		file.downloadCount > 0 ? `${file.downloadCount} ↓` : null,
 		remaining !== null ? `${remaining} left` : null,
 	].filter((part): part is string => part !== null);

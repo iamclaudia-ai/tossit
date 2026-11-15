@@ -34,6 +34,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 			completedAt: row.completedAt,
 			expiresAt: row.expiresAt,
 			downloadCount: row.downloadCount,
+			viewCount: row.viewCount,
 		})),
 	});
 }

@@ -50,6 +50,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 			expiresAt: row.expiresAt,
 			maxDownloads: row.maxDownloads,
 			downloadCount: row.downloadCount,
+			viewCount: row.viewCount,
 		})),
 	};
 }

@@ -7,6 +7,7 @@ export default [
 	// Public download
 	route("d/:slug", "routes/download.tsx"),
 	route("d/:slug/raw", "routes/download.raw.ts"),
+	route("d/:slug/view", "routes/download.view.ts"),
 
 	// Invites (public)
 	route("i/:code", "routes/invite.tsx"),

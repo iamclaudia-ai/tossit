@@ -1,8 +1,10 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import { data } from "react-router";
 import { Signature, Wordmark } from "~/components/brand";
 import { cloudflareContext } from "~/context";
 import { type DownloadRejection, resolveDownloadable } from "~/lib/download.server";
 import { formatBytes, formatExpiry } from "~/lib/format";
+import { type PreviewKind, previewFor } from "~/lib/preview";
 import type { Route } from "./+types/download";
 
 export function meta({ loaderData: loaded }: Route.MetaArgs) {
@@ -43,6 +45,9 @@ export async function loader({ params, context }: Route.LoaderArgs) {
 		file: {
 			filename: file.filename,
 			size: file.size,
+			contentType: file.contentType,
+			// What /d/:slug/view will serve inline, or null for download-only files.
+			preview: previewFor(file.contentType)?.kind ?? null,
 			expiresAt: file.expiresAt,
 			remaining:
 				file.maxDownloads === null ? null : file.maxDownloads - file.downloadCount,
@@ -56,41 +61,68 @@ export default function Download({ loaderData, params }: Route.ComponentProps) {
 		return <Unavailable reason={loaderData.reason as DownloadRejection} />;
 	}
 
-	const { filename, size, expiresAt, remaining } = loaderData.file;
+	return <Shared file={loaderData.file} slug={params.slug} />;
+}
+
+type SharedFile = NonNullable<Route.ComponentProps["loaderData"]["file"]>;
+
+function Shared({ file, slug }: { file: SharedFile; slug: string }) {
+	const { filename, size, expiresAt, remaining, preview } = file;
+	// Flips when the browser can't decode the file (an unsupported codec, or a type that lied),
+	// which puts back the plain download card.
+	const [failed, setFailed] = useState(false);
+	const fail = useCallback(() => setFailed(true), []);
+	const kind = failed ? null : preview;
+	const visual = kind === "video" || kind === "image";
+	const src = `/d/${slug}/view`;
 
 	return (
 		<main className="flex min-h-dvh flex-col items-center px-4">
-			<div className="flex w-full max-w-md flex-1 flex-col justify-center py-12">
+			<div
+				className={`flex w-full flex-1 flex-col justify-center py-12 ${visual ? "max-w-2xl" : "max-w-md"}`}
+			>
 				<p className="text-center">
 					<Wordmark />
 				</p>
 
-				<div className="mt-6 rounded-3xl border border-line/60 bg-white/75 p-8 text-center shadow-soft backdrop-blur-sm">
-					<FileGlyph />
+				<div
+					className={`mt-6 rounded-3xl border border-line/60 bg-white/75 text-center shadow-soft backdrop-blur-sm ${visual ? "p-3 pb-8 sm:p-4 sm:pb-8" : "p-8"}`}
+				>
+					{visual ? (
+						<Preview kind={kind} src={src} filename={filename} onFail={fail} />
+					) : (
+						<FileGlyph kind={kind} />
+					)}
 
-					<p className="mt-5 flex items-center justify-center gap-2 text-faint text-xs uppercase tracking-[0.2em]">
-						<HeartIcon />
-						Tossed your way
-					</p>
-					{/* break-all so a long filename can't push the card sideways on a phone */}
-					<h1 className="mt-2 break-all font-display text-2xl text-ink leading-snug">
-						{filename}
-					</h1>
-					<p className="tnum mt-1 font-mono text-muted text-sm">{formatBytes(size)}</p>
+					<div className={visual ? "px-5" : undefined}>
+						<p className="mt-5 flex items-center justify-center gap-2 text-faint text-xs uppercase tracking-[0.2em]">
+							<HeartIcon />
+							Tossed your way
+						</p>
+						{/* wrap-anywhere: whole words move to the next line, and only an unbroken long name splits */}
+						<h1 className="mt-2 wrap-anywhere font-display text-2xl text-ink leading-snug">
+							{filename}
+						</h1>
+						<p className="tnum mt-1 font-mono text-muted text-sm">{formatBytes(size)}</p>
 
-					<a
-						href={`/d/${params.slug}/raw`}
-						// No JS in the way: a plain link the browser downloads, so resuming works.
-						className="mt-7 block w-full rounded-full bg-signature px-5 py-3.5 font-medium text-white no-underline shadow-soft transition hover:shadow-lift hover:brightness-105"
-					>
-						Download
-					</a>
+						{kind === "audio" && (
+							<Preview kind="audio" src={src} filename={filename} onFail={fail} />
+						)}
 
-					<p className="mt-4 text-muted text-xs">
-						{formatExpiry(expiresAt)}
-						{remaining !== null &&
-							` · ${remaining} download${remaining === 1 ? "" : "s"} left`}
-					</p>
+						<a
+							href={`/d/${slug}/raw`}
+							// No JS in the way: a plain link the browser downloads, so resuming works.
+							className={`mt-7 block w-full rounded-full bg-signature px-5 py-3.5 font-medium text-white no-underline shadow-soft transition hover:shadow-lift hover:brightness-105 ${visual ? "mx-auto sm:max-w-xs" : ""}`}
+						>
+							Download
+						</a>
+
+						<p className="mt-4 text-muted text-xs">
+							{formatExpiry(expiresAt)}
+							{remaining !== null &&
+								` · ${remaining} download${remaining === 1 ? "" : "s"} left`}
+						</p>
+					</div>
 				</div>
 
 				<p className="mx-auto mt-6 max-w-sm text-center text-muted text-xs leading-relaxed">
@@ -100,6 +132,78 @@ export default function Download({ loaderData, params }: Route.ComponentProps) {
 			</div>
 			<Signature />
 		</main>
+	);
+}
+
+/**
+ * The browser's own player or an <img>, fed by /d/:slug/view (which counts views, never
+ * downloads). On any decode or load error it calls onFail and the page falls back to the
+ * download card.
+ */
+function Preview({
+	kind,
+	src,
+	filename,
+	onFail,
+}: {
+	kind: PreviewKind;
+	src: string;
+	filename: string;
+	onFail: () => void;
+}) {
+	const ref = useRef<HTMLVideoElement & HTMLAudioElement & HTMLImageElement>(null);
+
+	// The page is server-rendered, so the element can fail before hydration attaches onError.
+	// Catch that case once on mount.
+	useEffect(() => {
+		const el = ref.current;
+		if (!el) return;
+		const brokenImage = kind === "image" && el.complete && el.naturalWidth === 0;
+		const brokenMedia = kind !== "image" && el.error !== null;
+		if (brokenImage || brokenMedia) onFail();
+	}, [kind, onFail]);
+
+	if (kind === "image") {
+		return (
+			<div className="flex justify-center overflow-hidden rounded-2xl bg-violet-50/70 ring-1 ring-violet-200/50">
+				<img
+					ref={ref}
+					src={src}
+					alt={filename}
+					onError={onFail}
+					className="max-h-[70vh] w-auto max-w-full object-contain"
+				/>
+			</div>
+		);
+	}
+
+	if (kind === "video") {
+		return (
+			<div className="overflow-hidden rounded-2xl bg-stone-950 ring-1 ring-stone-900/10">
+				{/* biome-ignore lint/a11y/useMediaCaption: shared personal videos have no caption track */}
+				<video
+					ref={ref}
+					src={src}
+					controls
+					playsInline
+					preload="metadata"
+					onError={onFail}
+					className="mx-auto block max-h-[70vh] w-full"
+				/>
+			</div>
+		);
+	}
+
+	return (
+		// biome-ignore lint/a11y/useMediaCaption: shared personal audio has no caption track
+		<audio
+			ref={ref}
+			src={src}
+			controls
+			preload="metadata"
+			onError={onFail}
+			className="mt-6 w-full"
+		/>
 	);
 }
 
@@ -145,11 +249,38 @@ function HeartIcon() {
 	);
 }
 
-function FileGlyph() {
+function FileGlyph({ kind }: { kind: PreviewKind | null }) {
+	const audio = kind === "audio";
 	return (
-		<div className="mx-auto flex size-20 items-center justify-center rounded-3xl bg-violet-100 shadow-soft ring-1 ring-violet-200/70">
-			<FileArrow />
+		<div
+			className={`mx-auto flex size-20 items-center justify-center rounded-3xl shadow-soft ring-1 ${
+				audio ? "bg-rose-100 ring-rose-200/70" : "bg-violet-100 ring-violet-200/70"
+			}`}
+		>
+			{audio ? <MusicNote /> : <FileArrow />}
 		</div>
+	);
+}
+
+function MusicNote() {
+	return (
+		<svg
+			width="36"
+			height="36"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="1.5"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			aria-hidden="true"
+			className="text-rose-500"
+		>
+			<title>Audio</title>
+			<path d="M9 18V5l12-2v13" />
+			<circle cx="6" cy="18" r="3" />
+			<circle cx="18" cy="16" r="3" />
+		</svg>
 	);
 }
 

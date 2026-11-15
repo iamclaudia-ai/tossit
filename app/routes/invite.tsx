@@ -105,7 +105,7 @@ function UploadInvite({ code, invite }: { code: string; invite: InviteInfo }) {
 				<h1 className="mt-4 font-display text-2xl text-ink tracking-tight">
 					Sent — thank you
 				</h1>
-				<p className="mt-1 break-all text-muted text-sm">{sent.filename}</p>
+				<p className="mt-1 wrap-anywhere text-muted text-sm">{sent.filename}</p>
 				<p className="mt-4 text-muted text-xs">
 					This upload link has now been used and won't work again.
 				</p>

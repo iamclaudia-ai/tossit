@@ -22,7 +22,7 @@ There's a CLI too: [`@iamclaudia/tossit`](./cli) — `tossit ~/video.mov` prints
 
 ## Stack
 
-React Router v7 (framework mode, SSR) on Cloudflare Workers · D1 + Drizzle · R2 · passkeys via
+React Router v8 (framework mode, SSR) on Cloudflare Workers · D1 + Drizzle · R2 · passkeys via
 `@simplewebauthn` · Resend for invite codes · Tailwind v4 · bun.
 
 Uploads never pass through the Worker — the browser talks to R2 directly over presigned

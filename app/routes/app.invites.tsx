@@ -2,6 +2,7 @@ import { desc } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { data, Form, Link, useFetcher } from "react-router";
 import { CopyButton } from "~/components/copy-button";
+import { cloudflareContext } from "~/context";
 import { getDb } from "~/db";
 import { invites } from "~/db/schema";
 import { requireAdmin } from "~/lib/auth";
@@ -18,7 +19,7 @@ export function meta() {
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 	// Owner and admins issue invites; members can upload but not widen access.
 	await requireAdmin(env, request);
 
@@ -47,7 +48,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 	const { user } = await requireAdmin(env, request);
 
 	const form = await request.formData();

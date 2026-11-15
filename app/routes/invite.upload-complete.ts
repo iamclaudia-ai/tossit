@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { cloudflareContext } from "~/context";
 import { getDb } from "~/db";
 import { files } from "~/db/schema";
 import { consumeInviteUse, resolveInvite } from "~/lib/invites.server";
@@ -20,7 +21,7 @@ import type { Route } from "./+types/invite.upload-complete";
  * satisfy a single-use invite.
  */
 export async function action({ params, request, context }: Route.ActionArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 
 	const resolution = await resolveInvite(env, params.code);
 	if (!resolution.ok || resolution.invite.kind !== "upload") {

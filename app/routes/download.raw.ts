@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import { cloudflareContext } from "~/context";
 import { getDb } from "~/db";
 import { downloadEvents } from "~/db/schema";
 import {
@@ -19,7 +20,7 @@ import type { Route } from "./+types/download.raw";
  * response size cap on a streamed Worker response, and R2 egress is free.
  */
 export async function loader({ params, request, context }: Route.LoaderArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 
 	const limited = await checkRateLimit(env.DOWNLOAD_RATE, request, "d");
 	if (limited) return limited;
@@ -47,7 +48,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 		if (!claimed) return new Response("Not found", { status: 404 });
 
 		// Audit trail, written after the response is on its way so it never delays the stream.
-		context.cloudflare.ctx.waitUntil(recordDownload(env, request, file.id));
+		context.get(cloudflareContext).ctx.waitUntil(recordDownload(env, request, file.id));
 	}
 
 	const object = await env.BUCKET.get(

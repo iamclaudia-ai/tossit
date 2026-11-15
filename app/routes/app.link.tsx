@@ -1,4 +1,5 @@
 import { data, Form, Link, useSearchParams } from "react-router";
+import { cloudflareContext } from "~/context";
 import { requireUser } from "~/lib/auth";
 import { approveDeviceAuth, findPendingAuth } from "~/lib/device.server";
 import type { Route } from "./+types/app.link";
@@ -9,12 +10,12 @@ export function meta() {
 
 export async function loader({ request, context }: Route.LoaderArgs) {
 	// Approving a device requires a real, passkey-backed session — never a device token.
-	await requireUser(context.cloudflare.env, request);
+	await requireUser(context.get(cloudflareContext).env, request);
 	return null;
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 	const { user } = await requireUser(env, request);
 
 	const form = await request.formData();

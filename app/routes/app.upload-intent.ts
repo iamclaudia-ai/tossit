@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import { cloudflareContext } from "~/context";
 import { getDb } from "~/db";
 import { files } from "~/db/schema";
 import { requireUser } from "~/lib/auth";
@@ -21,7 +22,7 @@ import type { Route } from "./+types/app.upload-intent";
  * hand back presigned PUT URLs. The Worker never sees a byte of the file.
  */
 export async function action({ request, context }: Route.ActionArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 	const { user } = await requireUser(env, request);
 
 	const input = (await request.json()) as Partial<IntentInput>;

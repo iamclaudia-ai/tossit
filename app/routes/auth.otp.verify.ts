@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
+import { cloudflareContext } from "~/context";
 import { getDb } from "~/db";
 import { invites, users } from "~/db/schema";
 import { resolveInvite } from "~/lib/invites.server";
@@ -16,7 +17,7 @@ import type { Route } from "./+types/auth.otp.verify";
  * again once it lapses.
  */
 export async function action({ request, context }: Route.ActionArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 	const body = (await request.json()) as {
 		code?: string;
 		email?: string;

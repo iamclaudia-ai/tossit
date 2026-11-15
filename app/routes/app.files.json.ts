@@ -1,4 +1,5 @@
 import { and, desc, eq, isNull } from "drizzle-orm";
+import { cloudflareContext } from "~/context";
 import { getDb } from "~/db";
 import { files } from "~/db/schema";
 import { requireUser } from "~/lib/auth";
@@ -7,7 +8,7 @@ import type { Route } from "./+types/app.files.json";
 
 /** `tossit list`. Same ownership scope as the dashboard — admins see everything, members their own. */
 export async function loader({ request, context }: Route.LoaderArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 	const { uploaderScope } = await requireUser(env, request);
 
 	const rows = await getDb(env)

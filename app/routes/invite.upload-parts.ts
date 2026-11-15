@@ -1,3 +1,4 @@
+import { cloudflareContext } from "~/context";
 import { resolveInvite } from "~/lib/invites.server";
 import { getR2Config, presignParts } from "~/lib/r2";
 import { loadPendingUpload } from "~/lib/upload.server";
@@ -5,7 +6,7 @@ import type { Route } from "./+types/invite.upload-parts";
 
 /** Re-presign parts for an in-flight anonymous upload whose signatures aged out. */
 export async function action({ params, request, context }: Route.ActionArgs) {
-	const env = context.cloudflare.env;
+	const env = context.get(cloudflareContext).env;
 
 	const resolution = await resolveInvite(env, params.code);
 	if (!resolution.ok || resolution.invite.kind !== "upload") {

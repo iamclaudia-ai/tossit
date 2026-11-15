@@ -1,0 +1,6 @@
+[install]
+# Release-age window: never install a version younger than 3 days, so a hijacked
+# release is normally caught and yanked before it can land here.
+# Exempt security fixes by exact version only ("name@1.2.3"), with the GHSA and date.
+minimumReleaseAge = 259200
+minimumReleaseAgeExcludes = []

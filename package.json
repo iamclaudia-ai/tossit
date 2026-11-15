@@ -20,8 +20,8 @@
 		"cli:build": "cd cli && bun run build"
 	},
 	"dependencies": {
-		"@simplewebauthn/browser": "^13.3.0",
-		"@simplewebauthn/server": "^13.3.2",
+		"@simplewebauthn/browser": "^14.0.0",
+		"@simplewebauthn/server": "^14.1.0",
 		"aws4fetch": "^1.0.20",
 		"drizzle-orm": "^0.45.4",
 		"isbot": "5.2.3",

@@ -62,9 +62,9 @@ works until it doesn't.
 
 ### Download path
 
-- `resolveDownloadable()` is the single gate for both the page and the byte stream, so they can
-  never disagree. A slug exists from the moment an upload starts, so pending, aborted, deleted,
-  expired, and exhausted rows are all rejected there.
+- `resolveDownloadable()` is the single gate for the page and both byte streams (`/raw` and
+  `/view`), so they can never disagree. A slug exists from the moment an upload starts, so
+  pending, aborted, deleted, expired, and exhausted rows are all rejected there.
 - Count a download only on an opening request — no `Range` header, or one starting at byte 0 —
   and never on `HEAD`. A video player scrubbing an MP4 or a link previewer would otherwise
   inflate the count and burn capped links.
@@ -72,6 +72,24 @@ works until it doesn't.
   read-then-write races straight past `max_downloads`.
 - `Content-Disposition` needs RFC 5987 encoding plus an ASCII fallback, or non-ASCII filenames
   save as "download".
+
+### Previews
+
+- The download page shows video, audio and images in place, using the browser's own player or
+  an `<img>`, with the Download button always below. Anything the browser can't decode hides
+  the preview and falls back to filename, size and Download.
+- Preview bytes come from `/d/:slug/view`, never `/raw`. It serves `Content-Disposition: inline`,
+  `nosniff`, the allowlisted type (never the raw stored string), and a CSP that sandboxes the
+  document without scripts. Keep `allow-same-origin` and `media-src`/`img-src 'self'` in it:
+  plain `sandbox; default-src 'none'` breaks a video opened in its own tab in Chrome.
+- `content_type` is the uploader's `File.type`, so the allowlist in `app/lib/preview.ts` is the
+  only gate. Anything off it gets a 404 from `/view`. Never add SVG, HTML, XHTML or XML.
+- **Views and downloads are counted separately.** `/view` bumps `view_count` and never touches
+  `reserveDownload()`, `download_count` or `max_downloads`, so watching never uses up a capped
+  link. Only `/raw` counts downloads and claims a slot. Once the downloads run out, though,
+  `resolveDownloadable()` rejects the exhausted row and previews stop too.
+- Views follow the opening-request rule, except Safari's `bytes=0-1` probe, which doesn't
+  count (it precedes the real `bytes=0-`, and would double every play).
 
 ### Conventions
 
@@ -91,11 +109,13 @@ works until it doesn't.
   does other work orphans the process and wedges the tmux pane.
 - Test scripts should batch their D1 statements — each `wrangler d1 execute` is a process
   launch, and dozens of them in a loop is what jams the shell.
-- No virus scanning, by design. The download page shows the original filename and size and
-  never auto-downloads.
+- No virus scanning, by design: uploaders are invited and trusted. The download page shows the
+  original filename and size, and never starts a download on its own (previews are views, see
+  above).
 - `vite.config.ts` pins `tsconfigPaths({ root: import.meta.dirname })`. Without it,
-  vite-tsconfig-paths crawls Vite's workspace root for tsconfig files, and this Mac has a
-  `pnpm-workspace.yaml` in `$HOME`, so the crawl covers the whole home directory and dies with
+  vite-tsconfig-paths crawls Vite's workspace root for tsconfig files, and any stray workspace
+  file above the repo (a `pnpm-workspace.yaml` in `$HOME` did it once, removed 2026-11-15)
+  widens that root to the whole home directory, which dies with
   `EINVAL … scandir ~/Library/Developer/CoreDevice/DeviceFS/…` in typegen and build.
 
 ## Releasing the CLI

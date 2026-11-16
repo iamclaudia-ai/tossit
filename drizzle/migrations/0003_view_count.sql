@@ -1,0 +1,1 @@
+ALTER TABLE `files` ADD `view_count` integer DEFAULT 0 NOT NULL;

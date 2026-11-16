@@ -5,9 +5,11 @@ import { downloadEvents } from "~/db/schema";
 import {
 	contentDisposition,
 	parseRange,
+	rangeNotSatisfiable,
 	reserveDownload,
 	resolveDownloadable,
 	shouldCountDownload,
+	streamFile,
 } from "~/lib/download.server";
 import { checkRateLimit, hashIp } from "~/lib/ratelimit.server";
 import type { Route } from "./+types/download.raw";
@@ -31,15 +33,8 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 	if (!resolution.ok) return new Response("Not found", { status: 404 });
 
 	const { file } = resolution;
-	const size = file.size ?? 0;
-	const range = parseRange(request.headers.get("range"), size);
-
-	if (range === "unsatisfiable") {
-		return new Response("Range not satisfiable", {
-			status: 416,
-			headers: { "content-range": `bytes */${size}`, "accept-ranges": "bytes" },
-		});
-	}
+	const range = parseRange(request.headers.get("range"), file.size ?? 0);
+	if (range === "unsatisfiable") return rangeNotSatisfiable(file.size ?? 0);
 
 	// Claim the slot before streaming. Doing it after would mean a cap of 1 could be beaten by
 	// two simultaneous readers, and we cannot know whether a stream ran to completion anyway.
@@ -51,43 +46,11 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 		context.get(cloudflareContext).ctx.waitUntil(recordDownload(env, request, file.id));
 	}
 
-	const object = await env.BUCKET.get(
-		file.r2Key,
-		range ? { range: { offset: range.offset, length: range.length } } : undefined,
-	);
-	if (!object) return new Response("Not found", { status: 404 });
-
-	const headers = new Headers({
+	const response = await streamFile(env, request, file, range, {
 		"content-type": file.contentType || "application/octet-stream",
 		"content-disposition": contentDisposition(file.filename),
-		"accept-ranges": "bytes",
-		"cache-control": "private, no-store",
-		// A shared link must never end up in a search index.
-		"x-robots-tag": "noindex, nofollow",
-		// The filename is attacker-influenced in the invite-upload case; never let a browser
-		// sniff it into something executable.
-		"x-content-type-options": "nosniff",
 	});
-
-	if (object.httpEtag) headers.set("etag", object.httpEtag);
-
-	// HEAD gets every header and no body, so clients can size a download before starting.
-	if (request.method === "HEAD") {
-		headers.set("content-length", String(size));
-		return new Response(null, { status: 200, headers });
-	}
-
-	if (range) {
-		headers.set("content-length", String(range.length));
-		headers.set(
-			"content-range",
-			`bytes ${range.offset}-${range.offset + range.length - 1}/${size}`,
-		);
-		return new Response(object.body, { status: 206, headers });
-	}
-
-	headers.set("content-length", String(size));
-	return new Response(object.body, { status: 200, headers });
+	return response ?? new Response("Not found", { status: 404 });
 }
 
 /**

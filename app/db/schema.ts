@@ -188,6 +188,8 @@ export const files = sqliteTable(
 		/** null = unlimited */
 		maxDownloads: integer("max_downloads"),
 		downloadCount: integer("download_count").notNull().default(0),
+		/** In-page previews (/d/:slug/view). Separate from downloads and never capped. */
+		viewCount: integer("view_count").notNull().default(0),
 		deletedAt: integer("deleted_at"),
 	},
 	(t) => [

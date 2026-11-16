@@ -84,6 +84,9 @@ works until it doesn't.
   plain `sandbox; default-src 'none'` breaks a video opened in its own tab in Chrome.
 - `content_type` is the uploader's `File.type`, so the allowlist in `app/lib/preview.ts` is the
   only gate. Anything off it gets a 404 from `/view`. Never add SVG, HTML, XHTML or XML.
+- An upload with no type (the CLI sends none; browsers send `""` or `application/octet-stream`
+  for extensions they don't know) is matched by its filename's extension instead, mapped onto
+  the same allowlist. A real declared type always wins over the extension.
 - **Views and downloads are counted separately.** `/view` bumps `view_count` and never touches
   `reserveDownload()`, `download_count` or `max_downloads`, so watching never uses up a capped
   link. Only `/raw` counts downloads and claims a slot. Once the downloads run out, though,

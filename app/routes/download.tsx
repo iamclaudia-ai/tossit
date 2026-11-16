@@ -47,7 +47,7 @@ export async function loader({ params, context }: Route.LoaderArgs) {
 			size: file.size,
 			contentType: file.contentType,
 			// What /d/:slug/view will serve inline, or null for download-only files.
-			preview: previewFor(file.contentType)?.kind ?? null,
+			preview: previewFor(file.contentType, file.filename)?.kind ?? null,
 			expiresAt: file.expiresAt,
 			remaining:
 				file.maxDownloads === null ? null : file.maxDownloads - file.downloadCount,

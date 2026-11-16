@@ -1,5 +1,5 @@
 import { data, Form, Link, useSearchParams } from "react-router";
-import { Signature, Wordmark } from "~/components/brand";
+import { Logo, Signature } from "~/components/brand";
 import { cloudflareContext } from "~/context";
 import { requireUser } from "~/lib/auth";
 import { approveDeviceAuth, findPendingAuth } from "~/lib/device.server";
@@ -124,7 +124,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 		<main className="flex min-h-dvh flex-col items-center px-4">
 			<div className="flex w-full max-w-sm flex-1 flex-col justify-center py-16">
 				<p className="text-center">
-					<Wordmark />
+					<Logo arrive />
 				</p>
 				<div className="mt-6 rounded-2xl border border-line/70 bg-white/70 shadow-soft backdrop-blur-sm p-8">
 					{children}

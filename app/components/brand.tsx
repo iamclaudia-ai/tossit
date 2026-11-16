@@ -1,8 +1,9 @@
 import { Link } from "react-router";
 
-const WORDMARK_SIZES = {
-	md: "text-2xl",
-	lg: "text-6xl sm:text-7xl",
+// The mark is sized to sit on the wordmark's baseline and rise to its cap height.
+const SIZES = {
+	md: { text: "text-2xl", mark: "size-8", gap: "gap-1" },
+	lg: { text: "text-6xl sm:text-7xl", mark: "size-16 sm:size-20", gap: "gap-2" },
 };
 
 /**
@@ -10,14 +11,14 @@ const WORDMARK_SIZES = {
  * (public/favicon.svg, a bolder copy on a tile). With `arrive`, the ball flies in along the arc once.
  */
 export function TossMark({
-	size = 32,
+	className = "size-8",
 	arrive = false,
 }: {
-	size?: number;
+	className?: string;
 	arrive?: boolean;
 }) {
 	return (
-		<svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+		<svg className={className} viewBox="0 0 48 48" fill="none" aria-hidden="true">
 			<title>tossit</title>
 			<path
 				d="M6 36C10 16 24 8 42 12"
@@ -39,31 +40,36 @@ export function TossMark({
 	);
 }
 
-/** The mark and the wordmark side by side, for the pages a recipient sees. */
-export function Logo() {
+/**
+ * tossit's brand: the mark beside the wordmark, everywhere the name appears. `arrive` plays the
+ * toss on pages people land on; the signed-in header leaves it still, since it remounts on
+ * every navigation.
+ */
+export function Logo({
+	size = "md",
+	arrive = false,
+}: {
+	size?: keyof typeof SIZES;
+	arrive?: boolean;
+}) {
+	const { text, mark, gap } = SIZES[size];
 	return (
-		<span className="inline-flex items-end gap-1">
-			<TossMark arrive />
-			<Wordmark />
+		<span className={`inline-flex items-end ${gap}`}>
+			<TossMark className={mark} arrive={arrive} />
+			{/* "toss" in Newsreader with the "it" in italic violet: the name is the whole pitch. */}
+			<span className={`font-display tracking-tight text-ink ${text}`}>
+				toss<span className="text-accent italic">it</span>
+			</span>
 		</span>
 	);
 }
 
-/** "toss" in Newsreader with the "it" in italic violet: the name is the whole pitch. */
-export function Wordmark({ size = "md" }: { size?: keyof typeof WORDMARK_SIZES }) {
-	return (
-		<span className={`font-display tracking-tight text-ink ${WORDMARK_SIZES[size]}`}>
-			toss<span className="text-accent italic">it</span>
-		</span>
-	);
-}
-
-/** Header for the signed-in pages. The wordmark always leads home; each page brings its own nav. */
+/** Header for the signed-in pages. The logo always leads home; each page brings its own nav. */
 export function AppHeader({ children }: { children: React.ReactNode }) {
 	return (
 		<header className="mx-auto flex w-full max-w-3xl flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-5 sm:px-6">
 			<Link to="/app" className="no-underline">
-				<Wordmark />
+				<Logo />
 			</Link>
 			<nav className="-mx-3 flex items-center text-sm sm:mx-0 sm:gap-1">{children}</nav>
 		</header>

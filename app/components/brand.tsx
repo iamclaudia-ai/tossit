@@ -5,6 +5,48 @@ const WORDMARK_SIZES = {
 	lg: "text-6xl sm:text-7xl",
 };
 
+/**
+ * The toss: a dashed arc with the ball at its end, as in the drop zone and the favicon
+ * (public/favicon.svg, a bolder copy on a tile). With `arrive`, the ball flies in along the arc once.
+ */
+export function TossMark({
+	size = 32,
+	arrive = false,
+}: {
+	size?: number;
+	arrive?: boolean;
+}) {
+	return (
+		<svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+			<title>tossit</title>
+			<path
+				d="M6 36C10 16 24 8 42 12"
+				stroke="var(--color-violet-400)"
+				strokeWidth="2.5"
+				strokeLinecap="round"
+				strokeDasharray="3 4.5"
+			/>
+			<circle
+				cx="42"
+				cy="12"
+				r="5"
+				fill="var(--color-rose-400)"
+				className={arrive ? "animate-arrive" : undefined}
+			/>
+		</svg>
+	);
+}
+
+/** The mark and the wordmark side by side, for the pages a recipient sees. */
+export function Logo() {
+	return (
+		<span className="inline-flex items-end gap-1">
+			<TossMark arrive />
+			<Wordmark />
+		</span>
+	);
+}
+
 /** "toss" in Newsreader with the "it" in italic violet: the name is the whole pitch. */
 export function Wordmark({ size = "md" }: { size?: keyof typeof WORDMARK_SIZES }) {
 	return (

@@ -67,7 +67,7 @@ export function Logo({
 /** Header for the signed-in pages. The logo always leads home; each page brings its own nav. */
 export function AppHeader({ children }: { children: React.ReactNode }) {
 	return (
-		<header className="mx-auto flex w-full max-w-3xl flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-5 sm:px-6">
+		<header className="mx-auto flex w-full max-w-3xl flex-wrap items-center justify-between gap-x-2 gap-y-1 px-4 py-5 sm:px-6">
 			<Link to="/app" className="no-underline">
 				<Logo />
 			</Link>

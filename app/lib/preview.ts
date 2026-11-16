@@ -18,9 +18,12 @@ const PREVIEWABLE = new Map<string, PreviewKind>(
 		// iPhone .mov. Safari plays it, Chrome plays H.264 but not HEVC, and the page falls back to
 		// the plain download card when the browser can't decode it.
 		"video/quicktime": "video",
+		// Apple's alias for .m4v, which macOS browsers report as File.type (audio/x-m4a below, too).
+		"video/x-m4v": "video",
 
 		"audio/mpeg": "audio",
 		"audio/mp4": "audio",
+		"audio/x-m4a": "audio",
 		"audio/aac": "audio",
 		"audio/wav": "audio",
 		"audio/x-wav": "audio",

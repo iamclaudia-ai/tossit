@@ -83,6 +83,9 @@ works until it doesn't.
 
 ## Working on this
 
+- The UI wears Claudia's look from the `applying-claudia-style` skill: light only, cream with violet and rose
+  washes, Newsreader for the voice. `app/claudia.css` is a copy of the skill's `theme.css` (change it there,
+  then copy it back), and every page ends with `<Signature />` from `app/components/brand.tsx`.
 - `bun run check` and `bun run typecheck` should both be clean before committing.
 - Run the dev server as its own isolated command. Backgrounding it inside a command that also
   does other work orphans the process and wedges the tmux pane.

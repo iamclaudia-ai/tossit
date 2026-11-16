@@ -1,6 +1,7 @@
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { useCallback, useEffect, useState } from "react";
 import { Form, Link, useRevalidator } from "react-router";
+import { AppHeader, navItem, Signature } from "~/components/brand";
 import { copyText } from "~/components/copy-button";
 import { Dropzone } from "~/components/dropzone";
 import { FileRow } from "~/components/file-row";
@@ -80,47 +81,30 @@ export default function App({ loaderData }: Route.ComponentProps) {
 	const hasContent = pending.length > 0 || loaderData.files.length > 0;
 
 	return (
-		<div className="min-h-dvh">
-			<header className="mx-auto flex max-w-3xl items-center justify-between px-6 py-5">
-				<span className="font-semibold text-lg tracking-tight">
-					toss<span className="text-accent">it</span>
-				</span>
-				<div className="flex items-center gap-3 text-sm">
-					<span className="hidden text-ink-500 sm:inline">{loaderData.email}</span>
-					<Link
-						to="/app/settings"
-						className="rounded-lg px-3 py-1.5 text-ink-400 transition hover:bg-ink-900 hover:text-ink-200"
-					>
-						Settings
-					</Link>
-					{loaderData.isAdmin && (
-						<>
-							<Link
-								to="/app/users"
-								className="rounded-lg px-3 py-1.5 text-ink-400 transition hover:bg-ink-900 hover:text-ink-200"
-							>
-								People
-							</Link>
-							<Link
-								to="/app/invites"
-								className="rounded-lg px-3 py-1.5 text-ink-400 transition hover:bg-ink-900 hover:text-ink-200"
-							>
-								Invites
-							</Link>
-						</>
-					)}
-					<Form method="post" action="/auth/signout">
-						<button
-							type="submit"
-							className="rounded-lg px-3 py-1.5 text-ink-400 transition hover:bg-ink-900 hover:text-ink-200"
-						>
-							Sign out
-						</button>
-					</Form>
-				</div>
-			</header>
+		<div className="flex min-h-dvh flex-col">
+			<AppHeader>
+				<span className="mr-2 hidden text-muted sm:inline">{loaderData.email}</span>
+				<Link to="/app/settings" className={navItem}>
+					Settings
+				</Link>
+				{loaderData.isAdmin && (
+					<>
+						<Link to="/app/users" className={navItem}>
+							People
+						</Link>
+						<Link to="/app/invites" className={navItem}>
+							Invites
+						</Link>
+					</>
+				)}
+				<Form method="post" action="/auth/signout">
+					<button type="submit" className={navItem}>
+						Sign out
+					</button>
+				</Form>
+			</AppHeader>
 
-			<main className="mx-auto max-w-3xl px-6 pb-24">
+			<main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-8 sm:px-6">
 				<Dropzone onFiles={add} compact={hasContent} />
 
 				{pending.length > 0 && (
@@ -135,10 +119,8 @@ export default function App({ loaderData }: Route.ComponentProps) {
 
 				{loaderData.files.length > 0 && (
 					<section className="mt-10">
-						<h2 className="px-1 font-medium text-ink-500 text-xs uppercase tracking-widest">
-							Your tosses
-						</h2>
-						<ul className="mt-3 divide-y divide-ink-900 overflow-hidden rounded-2xl border border-ink-900">
+						<h2 className="px-1 font-display text-ink text-xl">Your tosses</h2>
+						<ul className="mt-3 divide-y divide-line/60 overflow-hidden rounded-2xl border border-line/70 bg-white/70 shadow-soft backdrop-blur-sm">
 							{loaderData.files.map((file) => (
 								<FileRow key={file.id} file={file} />
 							))}
@@ -147,9 +129,11 @@ export default function App({ loaderData }: Route.ComponentProps) {
 				)}
 			</main>
 
+			<Signature />
+
 			{toast && (
 				<div className="-translate-x-1/2 fixed bottom-6 left-1/2 z-50 animate-toast">
-					<div className="flex items-center gap-2 rounded-full border border-accent-dim bg-ink-900 px-4 py-2 text-sm shadow-lg shadow-black/40">
+					<div className="flex items-center gap-2 rounded-full border border-violet-200 bg-white px-4 py-2 text-sm shadow-lift">
 						<span className="size-1.5 rounded-full bg-accent" />
 						{toast}
 					</div>
@@ -172,11 +156,11 @@ function UploadRow({
 	const failed = item.status === "error" || item.status === "cancelled";
 
 	return (
-		<div className="animate-rise relative overflow-hidden rounded-xl border border-ink-850 bg-ink-900/60 px-4 py-3">
+		<div className="animate-rise relative overflow-hidden rounded-xl border border-line/70 bg-white/70 shadow-soft backdrop-blur-sm px-4 py-3">
 			<div className="flex items-center gap-4">
 				<div className="min-w-0 flex-1">
 					<p className="truncate font-medium text-sm">{item.file.name}</p>
-					<p className="tnum mt-0.5 font-mono text-ink-500 text-xs">
+					<p className="tnum mt-0.5 font-mono text-muted text-xs">
 						{item.status === "uploading" && (
 							<>
 								{formatBytes(item.progress?.loaded ?? 0)} / {formatBytes(item.file.size)}
@@ -188,29 +172,29 @@ function UploadRow({
 						)}
 						{item.status === "cancelled" && "Cancelled"}
 						{item.status === "error" && (
-							<span className="text-rose-400">{item.error}</span>
+							<span className="text-rose-600">{item.error}</span>
 						)}
 					</p>
 				</div>
 
-				<span className="tnum font-mono text-ink-400 text-sm">
+				<span className="tnum font-mono text-ink-soft text-sm">
 					{item.status === "uploading" ? `${percent}%` : ""}
 				</span>
 
 				<button
 					type="button"
 					onClick={() => (failed ? onDismiss(item.key) : onCancel(item.key))}
-					className="rounded-lg px-2 py-1 text-ink-500 text-sm transition hover:bg-ink-850 hover:text-ink-200"
+					className="rounded-full px-2 py-1 text-muted text-sm transition hover:bg-stone-100 hover:text-ink"
 				>
 					{failed ? "Dismiss" : "Cancel"}
 				</button>
 			</div>
 
 			{/* Progress as the row's own bottom edge rather than a bolted-on bar. */}
-			<div className="absolute inset-x-0 bottom-0 h-0.5 bg-ink-850">
+			<div className="absolute inset-x-0 bottom-0 h-1 bg-violet-100/70">
 				<div
 					className={`h-full transition-[width] duration-200 ease-out ${
-						failed ? "bg-rose-500/60" : "bg-accent"
+						failed ? "bg-rose-400" : "bg-signature"
 					}`}
 					style={{ width: `${failed ? 100 : percent}%` }}
 				/>

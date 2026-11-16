@@ -77,8 +77,8 @@ export function Dropzone({ onFiles, compact }: DropzoneProps) {
 					compact ? "min-h-32 px-8 py-8" : "min-h-[58dvh] px-8 py-20"
 				} ${
 					dragging
-						? "border-accent bg-accent/10 shadow-[0_0_60px_-15px] shadow-accent/50"
-						: "border-ink-800 hover:border-ink-700 hover:bg-ink-900/40"
+						? "border-violet-400 bg-violet-50/80 shadow-[0_0_60px_-15px] shadow-violet-400/60"
+						: "border-violet-200 bg-white/50 shadow-soft backdrop-blur-sm hover:border-violet-300 hover:bg-white/70 hover:shadow-lift"
 				}`}
 			>
 				<div
@@ -88,14 +88,14 @@ export function Dropzone({ onFiles, compact }: DropzoneProps) {
 				>
 					<TossGlyph active={dragging} compact={compact} />
 					<p
-						className={`font-medium tracking-tight transition-colors ${
-							compact ? "mt-3 text-base" : "mt-6 text-2xl"
-						} ${dragging ? "text-accent-bright" : "text-ink-200"}`}
+						className={`font-display tracking-tight transition-colors ${
+							compact ? "mt-3 text-xl" : "mt-6 text-3xl sm:text-4xl"
+						} ${dragging ? "text-accent-strong italic" : "text-ink"}`}
 					>
 						{dragging ? "Let go" : "Toss a file here"}
 					</p>
 					{!compact && (
-						<p className="mt-2 text-ink-500 text-sm">
+						<p className="mt-2 text-muted text-sm">
 							or click to browse — paste works too. Up to 5&nbsp;GB.
 						</p>
 					)}
@@ -118,7 +118,7 @@ export function Dropzone({ onFiles, compact }: DropzoneProps) {
 
 /** An arc with a falling dot — the toss. Nudges up and over when a file is over the window. */
 function TossGlyph({ active, compact }: { active: boolean; compact: boolean }) {
-	const size = compact ? 28 : 48;
+	const size = compact ? 36 : 56;
 	return (
 		<svg
 			width={size}
@@ -126,7 +126,7 @@ function TossGlyph({ active, compact }: { active: boolean; compact: boolean }) {
 			viewBox="0 0 48 48"
 			fill="none"
 			aria-hidden="true"
-			className={`transition-colors duration-300 ${active ? "text-accent-bright" : "text-ink-700 group-hover:text-ink-500"}`}
+			className={`transition-colors duration-300 ${active ? "text-violet-500" : "text-violet-300 group-hover:text-violet-400"}`}
 		>
 			<title>Toss</title>
 			<path
@@ -140,7 +140,7 @@ function TossGlyph({ active, compact }: { active: boolean; compact: boolean }) {
 				cx="42"
 				cy="12"
 				r="4"
-				fill="currentColor"
+				fill="var(--color-rose-400)"
 				className={`transition-transform duration-500 ${active ? "translate-y-[22px] translate-x-[-34px]" : ""}`}
 				style={{ transformOrigin: "42px 12px" }}
 			/>

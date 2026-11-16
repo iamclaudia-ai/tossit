@@ -12,6 +12,11 @@ import type { Route } from "./+types/root";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
+	// The toss mark. Browsers that read SVG icons take the first; favicon.ico (16/32/48) is the
+	// fallback, and iOS takes the square apple-touch-icon and rounds it itself.
+	{ rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+	{ rel: "icon", href: "/favicon.ico", sizes: "48x48" },
+	{ rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
 	{ rel: "preconnect", href: "https://fonts.googleapis.com" },
 	{
 		rel: "preconnect",

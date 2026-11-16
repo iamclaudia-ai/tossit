@@ -5,6 +5,30 @@
 @theme {
 	--animate-rise: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 	--animate-toast: toast 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+	--animate-arrive: arrive 0.9s linear 0.15s both;
+}
+
+/*
+ * The ball flying in along TossMark's arc (M6 36 C10 16 24 8 42 12) and landing at its end.
+ * Points are the curve at t = 0, ¼, ½, ¾, 1 relative to the ball's resting place; the uneven
+ * keyframe times slow it down as it lands.
+ */
+@keyframes arrive {
+	0% {
+		transform: translate(-36px, 24px);
+	}
+	13% {
+		transform: translate(-31.2px, 11.25px);
+	}
+	29% {
+		transform: translate(-23.25px, 3px);
+	}
+	50% {
+		transform: translate(-12.66px, -0.75px);
+	}
+	100% {
+		transform: translate(0, 0);
+	}
 }
 
 @keyframes rise {

@@ -44,7 +44,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 	const { file } = resolution;
 	// content_type is the uploader's File.type. Only allowlisted media is ever served inline;
 	// everything else, including a file merely claiming to be media, gets the same 404.
-	const preview = previewFor(file.contentType);
+	const preview = previewFor(file.contentType, file.filename);
 	if (!preview) return notFound();
 
 	const range = parseRange(request.headers.get("range"), file.size ?? 0);

@@ -31,7 +31,9 @@ export function TossMark({
 				cy="12"
 				r="5"
 				fill="var(--color-rose-400)"
-				className={arrive ? "animate-arrive" : undefined}
+				// motion-reduce: the theme's rule shortens the animation, but Chrome still paints its
+				// first keyframe for one frame, which would flash the ball at the arc's start.
+				className={arrive ? "animate-arrive motion-reduce:animate-none" : undefined}
 			/>
 		</svg>
 	);

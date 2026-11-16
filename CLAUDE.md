@@ -85,8 +85,9 @@ works until it doesn't.
 - `content_type` is the uploader's `File.type`, so the allowlist in `app/lib/preview.ts` is the
   only gate. Anything off it gets a 404 from `/view`. Never add SVG, HTML, XHTML or XML.
 - **Views and downloads are counted separately.** `/view` bumps `view_count` and never touches
-  `reserveDownload()`, `download_count` or `max_downloads`: a capped link limits downloads,
-  not watching. Only `/raw` counts downloads, and only `/raw` honors the cap.
+  `reserveDownload()`, `download_count` or `max_downloads`, so watching never uses up a capped
+  link. Only `/raw` counts downloads and claims a slot. Once the downloads run out, though,
+  `resolveDownloadable()` rejects the exhausted row and previews stop too.
 - Views follow the opening-request rule, except Safari's `bytes=0-1` probe, which doesn't
   count (it precedes the real `bytes=0-`, and would double every play).
 

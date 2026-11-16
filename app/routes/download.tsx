@@ -82,7 +82,7 @@ function Shared({ file, slug }: { file: SharedFile; slug: string }) {
 				className={`flex w-full flex-1 flex-col justify-center py-12 ${visual ? "max-w-2xl" : "max-w-md"}`}
 			>
 				<p className="text-center">
-					<Logo />
+					<Logo arrive />
 				</p>
 
 				<div
@@ -228,7 +228,7 @@ function Unavailable({ reason }: { reason: DownloadRejection }) {
 		<main className="flex min-h-dvh flex-col items-center px-4">
 			<div className="flex w-full max-w-sm flex-1 flex-col justify-center py-16 text-center">
 				<p>
-					<Logo />
+					<Logo arrive />
 				</p>
 				<h1 className="mt-6 font-display text-3xl text-ink tracking-tight">{title}</h1>
 				<p className="mt-3 text-balance font-display text-muted italic leading-relaxed">

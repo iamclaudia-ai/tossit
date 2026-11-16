@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { data, useNavigate } from "react-router";
-import { Signature, Wordmark } from "~/components/brand";
+import { Logo, Signature } from "~/components/brand";
 import { Dropzone } from "~/components/dropzone";
 import { cloudflareContext } from "~/context";
 import { useUploads } from "~/hooks/use-uploads";
@@ -55,7 +55,7 @@ export default function InvitePage({ loaderData, params }: Route.ComponentProps)
 		<main className="flex min-h-dvh flex-col items-center px-4">
 			<div className="flex w-full max-w-md flex-1 flex-col justify-center py-16">
 				<p className="text-center">
-					<Wordmark />
+					<Logo arrive />
 				</p>
 
 				{loaderData.invite.kind === "upload" ? (
@@ -324,7 +324,7 @@ function Unavailable({ reason }: { reason: InviteRejection }) {
 		<main className="flex min-h-dvh flex-col items-center px-4">
 			<div className="flex w-full max-w-sm flex-1 flex-col justify-center py-16 text-center">
 				<p className="text-center">
-					<Wordmark />
+					<Logo arrive />
 				</p>
 				<h1 className="mt-6 font-display text-2xl text-ink tracking-tight">
 					Invitation unavailable

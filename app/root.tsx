@@ -7,7 +7,7 @@ import {
 	ScrollRestoration,
 } from "react-router";
 
-import { Signature, Wordmark } from "~/components/brand";
+import { Logo, Signature } from "~/components/brand";
 import type { Route } from "./+types/root";
 import "./app.css";
 
@@ -73,7 +73,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
 	return (
 		<main className="flex min-h-dvh flex-col items-center justify-center px-4 py-16">
 			<div className="w-full max-w-xl text-center">
-				<Wordmark />
+				<Logo arrive />
 				<h1 className="mt-8 font-display text-5xl text-ink tracking-tight">{message}</h1>
 				<p className="mt-3 font-display text-lg text-muted italic">{details}</p>
 				{stack && (

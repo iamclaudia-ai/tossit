@@ -107,6 +107,9 @@ works until it doesn't.
 - The UI wears Claudia's look from the `applying-claudia-style` skill: light only, cream with violet and rose
   washes, Newsreader for the voice. `app/claudia.css` is a copy of the skill's `theme.css` (change it there,
   then copy it back), and every page ends with `<Signature />` from `app/components/brand.tsx`.
+- The brand is the toss mark (dashed arc, rose ball) beside the wordmark: `<Logo />` in `brand.tsx`, wherever the
+  name appears. `arrive` plays the toss on pages people land on, never in the signed-in header (it remounts on
+  every navigation). The favicons in `public/` are a bolder copy of the same mark.
 - `bun run check` and `bun run typecheck` should both be clean before committing.
 - Run the dev server as its own isolated command. Backgrounding it inside a command that also
   does other work orphans the process and wedges the tmux pane.

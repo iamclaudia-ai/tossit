@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { useState } from "react";
 import { redirect, useNavigate } from "react-router";
-import { Signature, Wordmark } from "~/components/brand";
+import { Logo, Signature } from "~/components/brand";
 import { cloudflareContext } from "~/context";
 import { getDb } from "~/db";
 import { credentials, users } from "~/db/schema";
@@ -68,9 +68,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 	return (
 		<main className="flex min-h-dvh flex-col items-center px-4">
 			<div className="flex w-full max-w-sm flex-1 flex-col justify-center py-16 text-center">
-				<TossArc />
-				<h1 className="mt-2">
-					<Wordmark size="lg" />
+				<h1>
+					<Logo size="lg" arrive />
 				</h1>
 				<p className="mt-4 text-balance font-display text-lg text-muted italic sm:text-xl">
 					Toss a big file, get a link, send the link.
@@ -111,32 +110,5 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 			</div>
 			<Signature />
 		</main>
-	);
-}
-
-/** The toss itself, drawn in the signature gradient: a dotted arc and the file in flight. */
-function TossArc() {
-	return (
-		<svg
-			viewBox="0 0 120 48"
-			className="mx-auto h-12 w-30"
-			fill="none"
-			aria-hidden="true"
-		>
-			<defs>
-				<linearGradient id="toss-arc" x1="0" x2="1">
-					<stop offset="0" stopColor="var(--color-violet-400)" />
-					<stop offset="1" stopColor="var(--color-rose-400)" />
-				</linearGradient>
-			</defs>
-			<path
-				d="M8 44C28 8 76 0 104 16"
-				stroke="url(#toss-arc)"
-				strokeWidth="1.5"
-				strokeLinecap="round"
-				strokeDasharray="2 5"
-			/>
-			<circle cx="106" cy="17" r="4.5" fill="var(--color-rose-400)" />
-		</svg>
 	);
 }

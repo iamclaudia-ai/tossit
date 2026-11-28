@@ -1,0 +1,8 @@
+{
+  "name": "tossit",
+  "install": [],
+  "build": "cd cli && bun run build",
+  "smoke": "bun cli/dist/tossit.js --version",
+  "bin": { "tossit": "cli/dist/tossit.js" },
+  "keep": 3
+}
